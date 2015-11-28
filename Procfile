@@ -1,1 +1,1 @@
-web:    java -cp target/classes:target/dependency/* Application
+web: java $JAVA_OPTS -jar target/store-0.0.1-SNAPSHOT.jar
