@@ -1,0 +1,12 @@
+.skill{
+	margin:20px;
+	display:block;
+	background-color:lightgray;
+	width:90px;
+	height:90px;
+	cursor:pointer;
+}
+
+.current-health{
+	float:left;
+}

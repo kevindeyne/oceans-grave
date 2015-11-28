@@ -1,0 +1,123 @@
+$(function(){		
+	var roundManager = new RoundManager();
+	
+});
+	
+/**
+ * @name RoundManager, manages the rounds of the combat
+ * @author Kevin Deyne
+ *
+ * Basic usage:
+ * var someFunction = new SomeFunction();
+ * someFunction.init();
+ *
+ * additionally you can use methods like someFunction.methodName();
+ *
+ * Advanced usage:
+ * var someFunction = new SomeFunction({
+ *      "additionalOption": "thatCanOvervriteDefaults"
+ * });
+ */
+function RoundManager(opts) {
+    //assign _root and config private variables
+    var _root = this;
+    var _cfg = $.extend({
+        "skillButtons": $(".skill")
+    }, opts);
+
+    _bindUIActions = function() {
+		//bind actions to skill buttons
+        _cfg.skillButtons.click(function (){
+			alert("action!");
+		});
+    }
+	
+	//checks if any of the actors has reached 0 health
+	_checkIfBattleIsOver = function() {
+		$(".current-health").each(function(){
+			if(0 == parseInt($(this).text())){
+				return true;
+			}
+		});
+        return false;
+    }
+	
+	_battleOverSequence = function() {
+        alert("done!");
+    }
+	
+    /* Some Public Method*/
+    this.nextRound = function() {
+		var ongoing = _checkIfBattleIsOver();
+		if(ongoing){
+		    console.log("Enemy action");
+			console.log("Next round");
+		}
+		_battleOverSequence();
+    }
+    
+    /* INITIALIZE */
+    var init = function() {
+      _bindUIActions();
+      return _root;
+    }
+    
+    return init();
+}
+
+
+
+
+
+
+
+
+/**
+ * @name exampleStructure
+ * @author
+ *
+ * Basic usage:
+ * var someFunction = new SomeFunction();
+ * someFunction.init();
+ *
+ * additionally you can use methods like someFunction.methodName();
+ *
+ * Advanced usage:
+ * var someFunction = new SomeFunction({
+ *      "additionalOption": "thatCanOvervriteDefaults"
+ * });
+ */
+function exampleStructure(opts) {
+    //assign _root and config private variables
+    var _root = this;
+    var _cfg = $.extend({
+        "someOption":  "some value"
+    }, opts);
+
+    /*
+        Some Private Method (no "this")
+    */
+    _somePrivateMethod = function() {
+        //some code
+        console.log("_somePrivateMethod");
+    }
+    /*
+        Some Public Method
+    */
+    this.somePublicMethod = function() {
+        //some code
+        console.log("somePublicMethod");
+    }
+    
+    /*
+        INITIALIZE
+    */
+    var init = function() {
+        //some code
+        _somePrivateMethod();
+        _root.somePublicMethod();
+      return _root;
+    }
+    
+    return init();
+}

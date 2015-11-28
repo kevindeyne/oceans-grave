@@ -1,0 +1,16 @@
+package com.cardprototype.page;
+
+import org.springframework.mobile.device.Device;
+import org.springframework.ui.Model;
+
+public abstract class AbstractController {
+
+	protected boolean isDesktopUser(Device device) {
+		return device == null || device.isNormal();
+	}
+
+	//menu.cart
+	protected void setupPage(Model model) {
+
+	}
+}

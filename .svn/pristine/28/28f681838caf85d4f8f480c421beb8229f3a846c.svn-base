@@ -1,0 +1,31 @@
+package com.cardprototype.page.battle;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.cardprototype.core.domain.Player;
+import com.cardprototype.core.repository.EnemyRepository;
+import com.cardprototype.core.repository.PlayerRepository;
+
+@Controller
+public class PageController {
+
+	@Autowired
+	private PlayerRepository playerRepository;
+
+	@Autowired
+	private EnemyRepository enemyRepository;
+
+	@RequestMapping(value={"", "/"})
+	public String initPage(Model model) {
+
+		Player player = this.playerRepository.findOne(Player.EXAMPLE_ID);
+
+		model.addAttribute("abilities", player.getAbilities());
+
+		return "battle/index";
+	}
+
+}

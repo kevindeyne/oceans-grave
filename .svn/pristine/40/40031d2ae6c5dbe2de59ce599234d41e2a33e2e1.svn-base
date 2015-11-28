@@ -1,0 +1,32 @@
+package com.cardprototype.page.battle;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.cardprototype.core.domain.Player;
+import com.cardprototype.core.repository.PlayerRepository;
+import com.cardprototype.page.AbstractController;
+
+@Controller
+public class PageController extends AbstractController {
+
+	@Autowired
+	private PlayerRepository playerRepository;
+
+	@RequestMapping(value={"", "/"})
+	public String initPage(HttpServletRequest request, Model model) {
+
+		Player player = this.playerRepository.findOne(Player.EXAMPLE_ID);
+
+		model.addAttribute("abilities", player.getAbilities());
+
+		model.addAttribute("urlSkillAction", AbilityController.SKILL_ACTION);
+
+		return "battle/index";
+	}
+
+}
