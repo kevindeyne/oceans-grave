@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Battle Prototype</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="js/ion.sound.min.js"></script>
+    <script src="js/sound_manager.js"></script>
+    <script src="js/battle.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:300' rel='stylesheet' type='text/css'/>
+    <link rel="stylesheet" href="css/battle.css" type="text/css" />
+	<script th:inline="javascript">
+	/*<![CDATA[*/
+	    var abilityURL = /*[[${urlSkillAction}]]*/;
+		var abilityParam = "{abilityId}";
+		
+		var messages = new Object();
+		messages.turnPlayer = "Player turn";
+		messages.turnEnemy = "Enemy turn";
+	/*]]>*/
+	</script>
+</head>
+<body>
+	<div id="background"></div>
+	<!-- div th:replace="fragments/menu :: menu">&nbsp;</div -->
+	<h1 id="round-info">Player turn</h1>
+	<br/>
+	
+	<div id="battle-log"></div>
+	
+	<div id="enemy-info">
+		<p>Enemy</p>
+		<div class="current-health">200</div><div class="fully-health">&nbsp;/ 200</div>
+	</div>
+	
+	<div id="player-info">
+		<p>Player</p>
+		<div class="current-health">200</div><div class="fully-health">&nbsp;/ 200</div>
+	</div>
+	
+	<div th:each="ability : ${abilities}" th:text="${ability.name}" th:id="${ability.id}" class="skill"></div>
+	
+	<div id="audio-control" class="off">Turn audio off</div>
+</body>
+</html>
