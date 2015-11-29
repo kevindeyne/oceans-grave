@@ -10,6 +10,11 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+/**
+ * This class makes sure we can use Spring Mobile to detect the device being used to access our
+ * application. If neccesary, this means that we can provide different content based on the used device
+ * @author Kevin Deyne
+ */
 @Configuration
 public class MobileDetectionConfiguration extends WebMvcConfigurerAdapter {
 

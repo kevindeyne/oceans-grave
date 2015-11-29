@@ -1,5 +1,11 @@
 package com.cardprototype.core.domain;
 
+/**
+ * An ability a player can have
+ * Only the id will be persisted in {@link Player}
+ *
+ * @author Kevin Deyne
+ */
 public class Ability {
 
 	private String id;

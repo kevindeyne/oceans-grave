@@ -9,6 +9,11 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
+/**
+ * An enemy
+ * @author Kevin Deyne
+ *
+ */
 @Entity
 public class Enemy implements Serializable {
 

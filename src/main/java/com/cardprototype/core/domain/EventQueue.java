@@ -10,6 +10,12 @@ import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.GenericGenerator;
 
+/**
+ * The event queue is a queue used during the battle system, using {@link Player} and round to figure out which are revelant
+ * Different events on the same round are then to be concatenated into a single 'change' event
+ *
+ * @author Kevin Deyne
+ */
 @Entity
 public class EventQueue implements Serializable {
 

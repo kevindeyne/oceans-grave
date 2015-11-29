@@ -9,6 +9,17 @@ import com.cardprototype.bootstrap.pool.AbilityPool;
 import com.cardprototype.core.domain.Ability;
 import com.cardprototype.core.domain.AbilityType;
 
+/**
+ * Loaders are classes that listen for an application start up and then fill
+ * either a database or in-memory storage with instances of classes
+ * This can be used for either test data or actual objects that only exist in-memory
+ *
+ * Implementing the {@link Ordered} interface ensures we can control when it is executed
+ *
+ * This specific class handles the {@link Ability}
+ *
+ * @author Kevin Deyne
+ */
 @Component
 public class AbilityLoader implements ApplicationListener<ContextRefreshedEvent>, Ordered {
 
@@ -20,11 +31,18 @@ public class AbilityLoader implements ApplicationListener<ContextRefreshedEvent>
 		pool.loadUp(AbilityLoader.basicHealAbility());
 	}
 
+	/**
+	 * Determines the order executed
+	 */
 	@Override
 	public int getOrder() {
 		return 1;
 	}
 
+	/**
+	 * Sets up a basic Attack (10) ability
+	 * @return {@link Ability}
+	 */
 	public static Ability basicAttackAbility() {
 		Ability ability = new Ability();
 
@@ -36,6 +54,10 @@ public class AbilityLoader implements ApplicationListener<ContextRefreshedEvent>
 		return ability;
 	}
 
+	/**
+	 * Sets up a basic Repair (5) ability
+	 * @return {@link Ability}
+	 */
 	public static Ability basicHealAbility() {
 		Ability ability = new Ability();
 

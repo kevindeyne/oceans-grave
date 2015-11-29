@@ -15,6 +15,10 @@ import com.cardprototype.core.repository.EventQueueRepository;
 import com.cardprototype.core.repository.PlayerRepository;
 import com.cardprototype.page.AbstractController;
 
+/**
+ * Initial battle page setup
+ * @author Kevin Deyne
+ */
 @Controller
 public class PageController extends AbstractController {
 
@@ -38,6 +42,9 @@ public class PageController extends AbstractController {
 		return "battle/index";
 	}
 
+	/**
+	 * Be sure to clean up previous battles and clean the event queue
+	 */
 	private void clearAllEvents() {
 		List<EventQueue> eventQueues = this.eventQueueRepository.findByPlayerId(Player.EXAMPLE_ID);
 		this.eventQueueRepository.delete(eventQueues);

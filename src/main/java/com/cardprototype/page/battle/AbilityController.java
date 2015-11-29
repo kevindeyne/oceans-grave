@@ -21,6 +21,11 @@ import com.cardprototype.core.domain.Player;
 import com.cardprototype.core.repository.EnemyRepository;
 import com.cardprototype.core.repository.EventQueueRepository;
 
+/**
+ * Controller in charge of {@link Ability} effects during a battle
+ * @author Kevin Deyne
+ *
+ */
 @Controller
 public class AbilityController {
 
@@ -35,21 +40,60 @@ public class AbilityController {
 	@RequestMapping(value={SKILL_ACTION})
 	public @ResponseBody Map<String, String> skillAction(Model model, @PathVariable String abilityId) {
 		EventQueue earliestEvent = this.eventQueueRepository.findTopByPlayerIdOrderByRoundAsc(Player.EXAMPLE_ID);
-		int round = 0;
-		if(null != earliestEvent){
-			round = earliestEvent.getRound();
-		}
-
-		Map<String, String> response = new HashMap<String, String>();
-		response.putAll(generateAttackEffects(abilityId, round));
-		response.putAll(generateNextAttack());
+		int round = determineRound(earliestEvent);
+		Map<String, String> response = buildResponse(abilityId, round);
 		clearEarliestEventQueue(round);
 		return response;
 	}
 
+	/**
+	 * Builds the single 'changed' response, concatenated from all the items on this round on the event queue
+	 * Also attaches the logic for the next attack, so we only have to go once to the server and back
+	 *
+	 * @param abilityId - the {@link Ability} just used
+	 * @param round - the current round, pre-determined
+	 * @return {@link Map} with response
+	 */
+	private Map<String, String> buildResponse(String abilityId, int round) {
+		Map<String, String> response = new HashMap<String, String>();
+		response.putAll(generateAttackEffects(abilityId, round));
+		response.putAll(generateNextAttack());
+		return response;
+	}
+
+	/**
+	 * Determines what round we're in
+	 * @param earliestEvent
+	 * @return
+	 */
+	private int determineRound(EventQueue earliestEvent) {
+		int round = 0;
+		if(null != earliestEvent){
+			round = earliestEvent.getRound();
+		}
+		return round;
+	}
+
+	/**
+	 * Concatentation of events from the {@link EventQueue}
+	 * for this round and this {@link Player}
+	 * @param abilityId just used, to be added to the {@link EventQueue}
+	 * @param round current round
+	 * @return part of the reponse {@link Map}
+	 */
 	private Map<String, String> generateAttackEffects(String abilityId, int round) {
 		Ability ability = AbilityPool.getAbilityPool().getAbility(abilityId);
+		int nextRound = saveCurrentActionOnEventQueue(round, ability);
+		return concatEventsOnQueueToResponse(nextRound);
+	}
 
+	/**
+	 * Saves the current ability on the queue
+	 * @param round
+	 * @param ability
+	 * @return nextRound
+	 */
+	private int saveCurrentActionOnEventQueue(int round, Ability ability) {
 		EventQueue eventQueue = new EventQueue();
 		eventQueue.setPlayer(createDummyPlayer(Player.EXAMPLE_ID));
 
@@ -64,11 +108,15 @@ public class AbilityController {
 		}
 
 		this.eventQueueRepository.save(eventQueue);
-
-		return generateRoundResponse(nextRound);
+		return nextRound;
 	}
 
-	private Map<String, String> generateRoundResponse(int nextRound) {
+	/**
+	 * Actual concatenation of events
+	 * @param nextRound
+	 * @return part of the response {@link Map}
+	 */
+	private Map<String, String> concatEventsOnQueueToResponse(int nextRound) {
 		List<EventQueue> eventQueues = this.eventQueueRepository.findByPlayerIdAndRound(Player.EXAMPLE_ID, nextRound);
 
 		Map<String, String> result = new HashMap<String, String>();
@@ -96,12 +144,24 @@ public class AbilityController {
 		return result;
 	}
 
+	/**
+	 * Dummy {@link Player} object used to persist items linked with a {@link Player},
+	 * but without having to retrieve the object. JPA knows to couple it to the right object
+	 * based on the ID.
+	 * 	 *
+	 * @param player's actual ID
+	 * @return empty {@link Player} object, except for the ID - to be used in persisting
+	 */
 	private Player createDummyPlayer(String dummyId) {
 		Player player = new Player();
 		player.setId(dummyId);
 		return player;
 	}
 
+	/**
+	 * Generates enemy round logic
+	 * @return
+	 */
 	private Map<String, String> generateNextAttack() {
 		Map<String, String> result = new HashMap<String, String>();
 
@@ -122,6 +182,11 @@ public class AbilityController {
 		return result;
 	}
 
+	/**
+	 * Primitive enemy AI
+	 * TODO belongs in a different place
+	 * @return
+	 */
 	private Ability randomlyPickAnAbility() {
 		Enemy enemy = this.enemyRepository.findByPlayerId(Player.EXAMPLE_ID);
 
@@ -130,6 +195,10 @@ public class AbilityController {
 		return AbilityPool.getAbilityPool().getAbility(abilityID);
 	}
 
+	/**
+	 * Since all concatenations are done, this round is not neccesary any more
+	 * @param round to be deleted
+	 */
 	private void clearEarliestEventQueue(int round) {
 		List<EventQueue> eventQueues = this.eventQueueRepository.findByPlayerIdAndRound(Player.EXAMPLE_ID, round);
 		this.eventQueueRepository.delete(eventQueues);

@@ -7,14 +7,28 @@ import com.cardprototype.core.domain.Ability;
 import com.cardprototype.core.domain.Enemy;
 import com.cardprototype.core.domain.Player;
 
+/**
+ * A pool is a singleton factory that can produce or find generated or in-memory instances
+ *
+ * This specific class handles {@link Enemy}
+ *
+ * @author Kevin Deyne
+ */
 public class EnemyPool {
 
 	private static EnemyPool pool;
 
+	/**
+	 * Private constructor ensures Singleton usage
+	 */
 	private EnemyPool(){
 
 	}
 
+	/**
+	 * Retrieves the Singleton pool
+	 * @return {@link EnemyPool}
+	 */
 	public static EnemyPool getEnemyPool(){
 		if(pool == null){
 			pool = new EnemyPool();
@@ -23,6 +37,11 @@ public class EnemyPool {
 		return pool;
 	}
 
+	/**
+	 * Generates a new basic enemy for a player
+	 * @param playerId
+	 * @return newly generated {@link Enemy}, unpersisted
+	 */
 	public Enemy generateNewEnemy(String playerId){
 
 		Enemy enemy = new Enemy();

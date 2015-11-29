@@ -9,6 +9,17 @@ import org.springframework.stereotype.Component;
 import com.cardprototype.core.domain.Player;
 import com.cardprototype.core.repository.PlayerRepository;
 
+/**
+ * Loaders are classes that listen for an application start up and then fill
+ * either a database or in-memory storage with instances of classes
+ * This can be used for either test data or actual objects that only exist in-memory
+ *
+ * Implementing the {@link Ordered} interface ensures we can control when it is executed
+ *
+ * This specific class handles the {@link Player}
+ *
+ * @author Kevin Deyne
+ */
 @Component
 public class PlayerLoader implements ApplicationListener<ContextRefreshedEvent>, Ordered {
 
@@ -20,6 +31,9 @@ public class PlayerLoader implements ApplicationListener<ContextRefreshedEvent>,
 		setupPlayer();
 	}
 
+	/**
+	 * Determines the order executed
+	 */
 	@Override
 	public int getOrder() {
 		return 2;

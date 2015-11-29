@@ -11,6 +11,17 @@ import com.cardprototype.core.domain.Enemy;
 import com.cardprototype.core.domain.Player;
 import com.cardprototype.core.repository.EnemyRepository;
 
+/**
+ * Loaders are classes that listen for an application start up and then fill
+ * either a database or in-memory storage with instances of classes
+ * This can be used for either test data or actual objects that only exist in-memory
+ *
+ * Implementing the {@link Ordered} interface ensures we can control when it is executed
+ *
+ * This specific class handles the {@link Enemy}
+ *
+ * @author Kevin Deyne
+ */
 @Component
 public class EnemyLoader implements ApplicationListener<ContextRefreshedEvent>, Ordered {
 
@@ -23,6 +34,9 @@ public class EnemyLoader implements ApplicationListener<ContextRefreshedEvent>, 
 		this.enemyRepository.save(enemy);
 	}
 
+	/**
+	 * Determines the order executed
+	 */
 	@Override
 	public int getOrder() {
 		return 3;

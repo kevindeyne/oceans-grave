@@ -11,6 +11,10 @@ import javax.persistence.Id;
 
 import com.cardprototype.bootstrap.pool.AbilityPool;
 
+/**
+ * A player
+ * @author Kevin Deyne
+ */
 @Entity
 public class Player implements Serializable {
 
