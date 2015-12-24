@@ -1,0 +1,63 @@
+#skill-description{
+	display:block;
+	height:100px;
+	width:90%;
+	clear:both;
+	margin-left:6px;
+	opacity:0;
+}
+
+#skillset{
+	position:absolute;
+	bottom:2%;
+}
+
+.skill{
+	margin:5px;
+	display:block;
+	background-color:#06171e;
+	width:106px;
+	height:106px;
+	cursor:pointer;
+	float:left;
+	
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.skill.disabled{
+	color:#353d32;
+	cursor:default;
+	opacity:0.5;
+}
+
+
+/* SKILLS */
+
+#skill-coolant{
+	background:url("/img/coolant.png") no-repeat center;
+}
+
+#skill-emp{
+	background:url("/img/emp.png") no-repeat center;
+}
+
+#skill-flak{
+	background:url("/img/flak.png") no-repeat center;
+}
+
+#skill-gattling{
+	background:url("/img/gattling.png") no-repeat center;
+}
+
+#skill-harpoon{
+	background:url("/img/harpoon.png") no-repeat center;
+}
+
+#skill-overdrive{
+	background:url("/img/overdrive.png") no-repeat center;
+}

@@ -1,0 +1,233 @@
+var soundManager;
+
+$(function(){		
+	var roundManager = new RoundManager();
+	soundManager = new SoundManager();
+	soundManager.soundBattle();
+	
+	var timeout;
+	/*SKILLS*/
+	$(".skill").hover(function(){
+		clearTimeout(timeout);
+		$("#skill-description").fadeTo(100, 1);
+		var name = $(this).attr("skill-name");
+		var range = $(this).attr("skill-range");
+		var type = $(this).attr("skill-type");
+		var description = $(this).attr("skill-description");
+		var stats = $(this).attr("skill-stats");
+		
+		$("#skill-description #descr-skill-name").text(name);
+		$("#skill-description #descr-skill-range").text(range);
+		$("#skill-description #descr-skill-type").text(type);
+		$("#skill-description #descr-skill-description").text(description);
+		$("#skill-description #descr-skill-stats").text(stats);		
+	},
+	function(){
+		timeout = setTimeout(function(){
+			$("#skill-description").fadeTo(100, 0);
+		}, 500);
+	});
+		 
+	 $('#player-circle').circleProgress({
+	     value: 1,
+	     fill: { gradient: [['#0681c4', .25], ['#4ac5f8', .75]], gradientAngle: Math.PI / 4 }
+	 }).on('circle-animation-progress', function(event, progress, stepValue) {
+	     $(this).find('.current-health').text(String((stepValue*100).toFixed(2)).substr(0,String((stepValue*100).toFixed(2)).indexOf(".")));
+	 });
+	 
+	 $('#enemy-circle').circleProgress({
+	     value: 1,
+	     fill: { gradient: [['#c40606', .25], ['#f84a4a', .75]], gradientAngle: Math.PI / 4 }
+	 }).on('circle-animation-progress', function(event, progress, stepValue) {
+	     $(this).find('.current-health').text(String((stepValue*100).toFixed(2)).substr(0,String((stepValue*100).toFixed(2)).indexOf(".")));
+	 });
+});
+	
+/**
+ * @name RoundManager, manages the rounds of the combat
+ * @author Kevin Deyne
+ *
+ * Basic usage:
+ * var someFunction = new SomeFunction();
+ * someFunction.init();
+ *
+ * additionally you can use methods like someFunction.methodName();
+ *
+ * Advanced usage:
+ * var someFunction = new SomeFunction({
+ *      "additionalOption": "thatCanOvervriteDefaults"
+ * });
+ */
+function RoundManager(opts) {
+    //assign _root and config private variables
+    var _root = this;
+    var _cfg = $.extend({
+        "skillButtons": $(".skill")
+    }, opts);
+
+    _bindUIActions = function() {
+		//bind actions to skill buttons
+        _cfg.skillButtons.click(function (){   
+        	if(!$(this).hasClass("disabled")){
+	        	_markRoundAsEnemyTurn();
+	        	
+	        	var abilityId = $(this).attr("id");
+	    		$.getJSON( abilityURL.replace(abilityParam, abilityId), function( data ) {
+	    			_abilityEffect(data);
+	    			_root.enemyRound(data);
+	    		});
+        	}
+		});
+    }
+    
+    _markRoundAsEnemyTurn = function() {
+    	_cfg.skillButtons.addClass("disabled");
+    	$("#round-info").text(messages.turnEnemy);
+    }
+    
+    _markRoundAsPlayerTurn = function() {
+    	_cfg.skillButtons.removeClass("disabled");
+    	$("#round-info").text(messages.turnPlayer);
+    }
+    
+    _abilityEffect = function(data) {
+    	_editActorHP("#enemy-info", parseInt(data.enemyHPChange), false);
+    	_editActorHP("#player-info", parseInt(data.playerHPChange), false);
+    }
+    
+	_editActorHP = function(divID, hpChange, enemyRound) {
+		if(0 != hpChange){
+			var currentHP = parseInt($(divID + " .current-health").text());
+			var maxHP = parseInt($(divID + " .fully-health").text().replace('/', '').trim());
+			currentHP += hpChange;
+			
+			var actor = "Enemy";
+			if(-1 !== divID.indexOf("player")){ actor = "Player"; }
+			
+			var healed = "healed";
+			if(hpChange < 0){ healed = "hit"; }
+			
+			if(enemyRound){
+				actor = "Enemy round: " + actor;
+			}
+			
+			_writeBattleLog(actor + " got " + healed + " for " + Math.abs(hpChange) + " points");
+			
+			if(currentHP < 0){ currentHP = 0; }		
+			if(currentHP > maxHP ){ currentHP = maxHP; }
+			
+			$(divID + " .current-health").text(currentHP);
+			
+			if(-1 !== divID.indexOf("player")){ 
+				$("#player-circle").circleProgress('value', currentHP/maxHP);
+			} else{
+				$("#enemy-circle").circleProgress('value', currentHP/maxHP);
+			}
+		}
+	}
+	
+	
+	_writeBattleLog = function(log) {
+		var paragraph = $("<p />").text(log);
+		$("#battle-log").prepend(paragraph);
+    }
+		
+	//checks if any of the actors has reached 0 health
+	_checkIfBattleIsOver = function() {
+		var isOver = false;
+		$(".current-health").each(function(){
+			if(0 == parseInt($(this).text())){
+				isOver = true;
+			}
+		});
+        return isOver;
+    }
+	
+	_battleOverSequence = function() {
+        alert("done!");
+    }
+	
+    /* Some Public Method*/
+    this.enemyRound = function(data) {
+		var isOver = _checkIfBattleIsOver();
+		if(!isOver){
+			setTimeout(function(){						
+		    	_editActorHP("#enemy-info", parseInt(data.enemyturn_enemyHPChange), true);
+		    	_editActorHP("#player-info", parseInt(data.enemyturn_playerHPChange), true);
+		    	
+				if(_checkIfBattleIsOver()){
+					_battleOverSequence();
+				} else {
+					_markRoundAsPlayerTurn();
+				}
+			}, 1100);
+		} else {
+			_battleOverSequence();
+		}		
+    }
+    
+    /* INITIALIZE */
+    var init = function() {
+      _bindUIActions();
+      return _root;
+    }
+    
+    return init();
+}
+
+
+
+
+
+
+
+
+/**
+ * @name exampleStructure
+ * @author
+ *
+ * Basic usage:
+ * var someFunction = new SomeFunction();
+ * someFunction.init();
+ *
+ * additionally you can use methods like someFunction.methodName();
+ *
+ * Advanced usage:
+ * var someFunction = new SomeFunction({
+ *      "additionalOption": "thatCanOvervriteDefaults"
+ * });
+ */
+function exampleStructure(opts) {
+    //assign _root and config private variables
+    var _root = this;
+    var _cfg = $.extend({
+        "someOption":  "some value"
+    }, opts);
+
+    /*
+        Some Private Method (no "this")
+    */
+    _somePrivateMethod = function() {
+        //some code
+        console.log("_somePrivateMethod");
+    }
+    /*
+        Some Public Method
+    */
+    this.somePublicMethod = function() {
+        //some code
+        console.log("somePublicMethod");
+    }
+    
+    /*
+        INITIALIZE
+    */
+    var init = function() {
+        //some code
+        _somePrivateMethod();
+        _root.somePublicMethod();
+      return _root;
+    }
+    
+    return init();
+}

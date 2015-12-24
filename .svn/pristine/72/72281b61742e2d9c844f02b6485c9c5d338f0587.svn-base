@@ -1,0 +1,653 @@
+package com.redleafbooks;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.test.annotation.Repeat;
+
+import com.cardprototype.bootstrap.loaders.AbilityLoader;
+import com.cardprototype.bootstrap.pool.AbilityPool;
+import com.cardprototype.core.domain.Ability;
+import com.cardprototype.core.domain.EventQueue;
+import com.cardprototype.core.domain.Player;
+import com.cardprototype.core.domain.battle.helper.RoundChanges;
+import com.cardprototype.core.repository.EventQueueRepository;
+import com.cardprototype.task.AbilityEffectService;
+import com.cardprototype.task.AbilityEffectServiceImpl;
+
+public class AbilitiesTest {
+
+	private AbilityEffectService service;
+	private EventQueueRepository eventQueueRepository;
+
+	@Before
+	public void setup(){
+		this.eventQueueRepository = Mockito.mock(EventQueueRepository.class);
+		this.service = new AbilityEffectServiceImpl(this.eventQueueRepository);
+		AbilityLoader.setup();
+	}
+
+	/** DAMAGE DEALING TEST **/
+	@Test
+	@Repeat( value = 100 )
+	public void testFirstRoundDamageAttackPlayerOnEnemy() {
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GATTLING_GUN, true));
+
+		int minimumDamage = 5;
+		int maximumDamage = 10;
+
+		Ability ability = createAttackAbility(minimumDamage, maximumDamage, Ability.GATTLING_GUN);
+		RoundChanges roundChanges = getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertTrue(minimumDamage <= damageDealt);
+		Assert.assertTrue(maximumDamage >= damageDealt);
+
+		boolean isEnemyScorched = roundChanges.getEnemyChanges().isScorched();
+		boolean isPlayerScorched = roundChanges.getPlayerChanges().isScorched();
+		Assert.assertEquals(false, isEnemyScorched);
+		Assert.assertEquals(false, isPlayerScorched);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(1)).save(Mockito.any(EventQueue.class));
+
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testSecondRoundDamageAttackPlayerOnEnemy() {
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GATTLING_GUN, true));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1);
+
+		int minimumDamage = 5;
+		int maximumDamage = 10;
+
+		Ability ability = createAttackAbility(minimumDamage, maximumDamage, Ability.GATTLING_GUN);
+		getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+1);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+		Mockito.verify(this.eventQueueRepository, Mockito.times(1)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testFirstRoundDamageAttackEnemyOnPlayer() {
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GATTLING_GUN, false));
+
+		int minimumDamage = 5;
+		int maximumDamage = 10;
+
+		Ability ability = createAttackAbility(minimumDamage, maximumDamage, Ability.GATTLING_GUN);
+		RoundChanges roundChanges = getRoundChangesAsEnemy(ability, RoundChanges.MIN_ROUND);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertTrue(minimumDamage <= damageReceived);
+		Assert.assertTrue(maximumDamage >= damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean isEnemyScorched = roundChanges.getEnemyChanges().isScorched();
+		boolean isPlayerScorched = roundChanges.getPlayerChanges().isScorched();
+		Assert.assertEquals(false, isEnemyScorched);
+		Assert.assertEquals(false, isPlayerScorched);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(1)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testSecondRoundDamageAttackEnemyOnPlayer() {
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GATTLING_GUN, false));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1);
+
+		int minimumDamage = 5;
+		int maximumDamage = 10;
+
+		Ability ability = createAttackAbility(minimumDamage, maximumDamage, Ability.GATTLING_GUN);
+		getRoundChangesAsEnemy(ability, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+1);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+		Mockito.verify(this.eventQueueRepository, Mockito.times(1)).save(Mockito.any(EventQueue.class));
+	}
+
+	/** DOT DEALING TEST **/
+	@Test
+	@Repeat( value = 100 )
+	public void testFirstRoundDOTAttackPlayerOnEnemy() {
+		boolean asPlayer = true;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.FLAK_CANNON, asPlayer));
+
+		int minimumDamage = 1;
+		int maximumDamage = 3;
+
+		Ability ability = createDotAbility(minimumDamage, maximumDamage, 2, Ability.FLAK_CANNON);
+		RoundChanges roundChanges = getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertTrue(minimumDamage <= damageDealt);
+		Assert.assertTrue(maximumDamage >= damageDealt);
+
+		boolean isEnemyScorched = roundChanges.getEnemyChanges().isScorched();
+		boolean isPlayerScorched = roundChanges.getPlayerChanges().isScorched();
+		Assert.assertEquals(true, isEnemyScorched);
+		Assert.assertEquals(false, isPlayerScorched);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testSecondRoundDOTAttackPlayerOnEnemy() {
+		boolean asPlayer = true;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.FLAK_CANNON, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.FLAK_CANNON, asPlayer));
+
+		int minimumDamage = 1;
+		int maximumDamage = 3;
+
+		Ability ability = createDotAbility(minimumDamage, maximumDamage, 2, Ability.FLAK_CANNON);
+		getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+1);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertTrue(minimumDamage <= damageDealt);
+		Assert.assertTrue(maximumDamage >= damageDealt);
+
+		boolean isEnemyScorched = roundChanges.getEnemyChanges().isScorched();
+		boolean isPlayerScorched = roundChanges.getPlayerChanges().isScorched();
+		Assert.assertEquals(true, isEnemyScorched);
+		Assert.assertEquals(false, isPlayerScorched);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testThirdRoundDOTAttackPlayerOnEnemy() {
+		boolean asPlayer = true;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.FLAK_CANNON, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.FLAK_CANNON, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+2);
+
+		int minimumDamage = 1;
+		int maximumDamage = 3;
+
+		Ability ability = createDotAbility(minimumDamage, maximumDamage, 2, Ability.FLAK_CANNON);
+		getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+2);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean isEnemyScorched = roundChanges.getEnemyChanges().isScorched();
+		boolean isPlayerScorched = roundChanges.getPlayerChanges().isScorched();
+		Assert.assertEquals(false, isEnemyScorched);
+		Assert.assertEquals(false, isPlayerScorched);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+
+
+	@Test
+	@Repeat( value = 100 )
+	public void testFirstRoundDOTAttackEnemyOnPlayer() {
+		boolean asPlayer = false;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.FLAK_CANNON, asPlayer));
+
+		int minimumDamage = 1;
+		int maximumDamage = 3;
+
+		Ability ability = createDotAbility(minimumDamage, maximumDamage, 2, Ability.FLAK_CANNON);
+		RoundChanges roundChanges = getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageDealt);
+		Assert.assertTrue(minimumDamage <= damageReceived);
+		Assert.assertTrue(maximumDamage >= damageReceived);
+
+		boolean isEnemyScorched = roundChanges.getEnemyChanges().isScorched();
+		boolean isPlayerScorched = roundChanges.getPlayerChanges().isScorched();
+		Assert.assertEquals(false, isEnemyScorched);
+		Assert.assertEquals(true, isPlayerScorched);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testSecondRoundDOTAttackEnemyOnPlayer() {
+		boolean asPlayer = false;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.FLAK_CANNON, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.FLAK_CANNON, asPlayer));
+
+		int minimumDamage = 1;
+		int maximumDamage = 3;
+
+		Ability ability = createDotAbility(minimumDamage, maximumDamage, 2, Ability.FLAK_CANNON);
+		getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+1);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageDealt);
+		Assert.assertTrue(minimumDamage <= damageReceived);
+		Assert.assertTrue(maximumDamage >= damageReceived);
+
+		boolean isEnemyScorched = roundChanges.getEnemyChanges().isScorched();
+		boolean isPlayerScorched = roundChanges.getPlayerChanges().isScorched();
+		Assert.assertEquals(false, isEnemyScorched);
+		Assert.assertEquals(true, isPlayerScorched);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testThirdRoundDOTAttackEnemyOnPlayer() {
+		boolean asPlayer = false;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.FLAK_CANNON, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.FLAK_CANNON, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+2);
+
+		int minimumDamage = 1;
+		int maximumDamage = 3;
+
+		Ability ability = createDotAbility(minimumDamage, maximumDamage, 2, Ability.FLAK_CANNON);
+		getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+2);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean isEnemyScorched = roundChanges.getEnemyChanges().isScorched();
+		boolean isPlayerScorched = roundChanges.getPlayerChanges().isScorched();
+		Assert.assertEquals(false, isEnemyScorched);
+		Assert.assertEquals(false, isPlayerScorched);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+
+	/** EMP TEST **/
+	@Test
+	@Repeat( value = 100 )
+	public void testFirstRoundEMPAttackPlayerOnEnemy() {
+		boolean asPlayer = true;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+
+		Ability ability = createEMPAbility(2, Ability.GAUSS_MINE_DRONE);
+		RoundChanges roundChanges = getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean enemySkipsTurn = roundChanges.getEnemyChanges().isStunned();
+		boolean playerSkipsTurn = roundChanges.getPlayerChanges().isStunned();
+		Assert.assertEquals(true, enemySkipsTurn);
+		Assert.assertEquals(false, playerSkipsTurn);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testFirstRoundEMPAttackPlayerOnEnemyNullifiesAttack() {
+		boolean asPlayer = true;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND,
+				new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer),
+				new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GATTLING_GUN, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+
+		Ability ability = createEMPAbility(2, Ability.GAUSS_MINE_DRONE);
+
+		Ability combinedAbility = createAttackAbility(10, 12, Ability.GATTLING_GUN);
+		getRoundChangesAsPlayer(combinedAbility, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean enemySkipsTurn = roundChanges.getEnemyChanges().isStunned();
+		boolean playerSkipsTurn = roundChanges.getPlayerChanges().isStunned();
+		Assert.assertEquals(true, enemySkipsTurn);
+		Assert.assertEquals(false, playerSkipsTurn);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(3)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testSecondRoundEMPAttackPlayerOnEnemy() {
+		boolean asPlayer = true;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+
+		Ability ability = createEMPAbility(2, Ability.GAUSS_MINE_DRONE);
+		getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+1);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean enemySkipsTurn = roundChanges.getEnemyChanges().isStunned();
+		boolean playerSkipsTurn = roundChanges.getPlayerChanges().isStunned();
+		Assert.assertEquals(true, enemySkipsTurn);
+		Assert.assertEquals(false, playerSkipsTurn);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testThirdRoundEMPAttackPlayerOnEnemy() {
+		boolean asPlayer = true;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+2);
+
+		Ability ability = createEMPAbility(2, Ability.GAUSS_MINE_DRONE);
+		getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+2);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean enemySkipsTurn = roundChanges.getEnemyChanges().isStunned();
+		boolean playerSkipsTurn = roundChanges.getPlayerChanges().isStunned();
+		Assert.assertEquals(false, enemySkipsTurn);
+		Assert.assertEquals(false, playerSkipsTurn);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+
+	@Test
+	@Repeat( value = 100 )
+	public void testFirstRoundEMPAttackEnemyOnPlayer() {
+		boolean asPlayer = false;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+
+		Ability ability = createEMPAbility(2, Ability.GAUSS_MINE_DRONE);
+		RoundChanges roundChanges = getRoundChangesAsEnemy(ability, RoundChanges.MIN_ROUND);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean enemySkipsTurn = roundChanges.getEnemyChanges().isStunned();
+		boolean playerSkipsTurn = roundChanges.getPlayerChanges().isStunned();
+		Assert.assertEquals(false, enemySkipsTurn);
+		Assert.assertEquals(true, playerSkipsTurn);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testFirstRoundEMPAttackEnemyOnPlayerNullifiesAttack() {
+		boolean asPlayer = false;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND,
+				new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer),
+				new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GATTLING_GUN, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+
+		Ability ability = createEMPAbility(2, Ability.GAUSS_MINE_DRONE);
+
+		Ability combinedAbility = createAttackAbility(10, 12, Ability.GATTLING_GUN);
+		getRoundChangesAsEnemy(combinedAbility, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = getRoundChangesAsEnemy(ability, RoundChanges.MIN_ROUND);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean enemySkipsTurn = roundChanges.getEnemyChanges().isStunned();
+		boolean playerSkipsTurn = roundChanges.getPlayerChanges().isStunned();
+		Assert.assertEquals(false, enemySkipsTurn);
+		Assert.assertEquals(true, playerSkipsTurn);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(3)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testSecondRoundEMPAttackEnemyOnPlayer() {
+		boolean asPlayer = false;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+
+		Ability ability = createEMPAbility(2, Ability.GAUSS_MINE_DRONE);
+		getRoundChangesAsEnemy(ability, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+1);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean enemySkipsTurn = roundChanges.getEnemyChanges().isStunned();
+		boolean playerSkipsTurn = roundChanges.getPlayerChanges().isStunned();
+		Assert.assertEquals(false, enemySkipsTurn);
+		Assert.assertEquals(true, playerSkipsTurn);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testThirdRoundEMPAttackEnemyOnPlayer() {
+		boolean asPlayer = false;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.GAUSS_MINE_DRONE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+2);
+
+		Ability ability = createEMPAbility(2, Ability.GAUSS_MINE_DRONE);
+		getRoundChangesAsEnemy(ability, RoundChanges.MIN_ROUND);
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+2);
+
+		int damageDealt = determineDamageDealtToEnemy(roundChanges);
+		int damageReceived = determineDamageDealtToPlayer(roundChanges);
+
+		Assert.assertEquals(0, damageReceived);
+		Assert.assertEquals(0, damageDealt);
+
+		boolean enemySkipsTurn = roundChanges.getEnemyChanges().isStunned();
+		boolean playerSkipsTurn = roundChanges.getPlayerChanges().isStunned();
+		Assert.assertEquals(false, enemySkipsTurn);
+		Assert.assertEquals(false, playerSkipsTurn);
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(2)).save(Mockito.any(EventQueue.class));
+	}
+
+	/** RECHARGE TEST **/
+	@Test
+	@Repeat( value = 100 )
+	public void testThirdRoundRechargePlayer() {
+		boolean asPlayer = true;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.OVERDRIVE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+3, new EventQueue(RoundChanges.MIN_ROUND+3, Player.EXAMPLE_ID, Ability.OVERDRIVE, asPlayer, 3));
+
+		Ability ability = createCooldownAbility(6, Ability.OVERDRIVE);
+		getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+3);
+
+		Map<String, Integer> abilitiesOnCooldown = roundChanges.getPlayerChanges().getAbilitiesOnCooldown();
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(6+1)).save(Mockito.any(EventQueue.class));
+		Assert.assertNotNull(abilitiesOnCooldown);
+		Assert.assertEquals(1, abilitiesOnCooldown.keySet().size());
+		Assert.assertEquals(new Integer(3), abilitiesOnCooldown.get(Ability.OVERDRIVE));
+	}
+
+	@Test
+	@Repeat( value = 100 )
+	public void testThirdRoundRechargeEnemy() {
+		boolean asPlayer = false;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.OVERDRIVE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+3, new EventQueue(RoundChanges.MIN_ROUND+3, Player.EXAMPLE_ID, Ability.OVERDRIVE, asPlayer, 3));
+
+		Ability ability = createCooldownAbility(6, Ability.OVERDRIVE);
+		getRoundChangesAsEnemy(ability, RoundChanges.MIN_ROUND);
+
+		RoundChanges roundChanges = this.service.getRoundChanges(RoundChanges.MIN_ROUND+3);
+
+		Map<String, Integer> abilitiesOnCooldown = roundChanges.getEnemyChanges().getAbilitiesOnCooldown();
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(6+1)).save(Mockito.any(EventQueue.class));
+		Assert.assertNotNull(abilitiesOnCooldown);
+		Assert.assertEquals(1, abilitiesOnCooldown.keySet().size());
+		Assert.assertEquals(new Integer(3), abilitiesOnCooldown.get(Ability.OVERDRIVE));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	@Repeat( value = 100 )
+	public void testThirdRoundRechargeClearedByAbilityPlayer() {
+		boolean asPlayer = true;
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND, new EventQueue(RoundChanges.MIN_ROUND, Player.EXAMPLE_ID, Ability.OVERDRIVE, asPlayer));
+		mockFindByPlayerIdAndRound(Player.EXAMPLE_ID, RoundChanges.MIN_ROUND+1, new EventQueue(RoundChanges.MIN_ROUND+1, Player.EXAMPLE_ID, Ability.COOLANT_FLUID, asPlayer));
+
+		Ability ability = createCooldownAbility(6, Ability.OVERDRIVE);
+		getRoundChangesAsPlayer(ability, RoundChanges.MIN_ROUND);
+
+		//now kill the cooldown with coolant fluid
+		Ability abilityCoolant = AbilityPool.getAbilityPool().getAbility(Ability.COOLANT_FLUID);
+		RoundChanges roundChanges = getRoundChangesAsPlayer(abilityCoolant, RoundChanges.MIN_ROUND+1);
+
+		Map<String, Integer> abilitiesOnCooldown = roundChanges.getPlayerChanges().getAbilitiesOnCooldown();
+
+		Mockito.verify(this.eventQueueRepository, Mockito.times(6+1+1)).save(Mockito.any(EventQueue.class));
+		Mockito.verify(this.eventQueueRepository, Mockito.times(1)).delete(Mockito.any(List.class));
+		Assert.assertTrue(abilitiesOnCooldown == null || CollectionUtils.isEmpty(abilitiesOnCooldown.values()));
+	}
+
+	/** MISS TEST (ACC VS MISS %) **/
+
+
+	/** BUFF TEST (DEF VS DMG -) **/
+
+
+	/** LOCATION TEST **/
+
+
+	/**/
+
+	private int determineDamageDealtToPlayer(RoundChanges roundChanges) {
+		int playerHealthChange = roundChanges.getPlayerChanges().getHealth();
+		int damageReceived = invert(playerHealthChange);
+		return damageReceived;
+	}
+
+	private int determineDamageDealtToEnemy(RoundChanges roundChanges) {
+		int enemyHealthChange = roundChanges.getEnemyChanges().getHealth();
+		int damageDealt = invert(enemyHealthChange);
+		return damageDealt;
+	}
+
+	private void mockFindByPlayerIdAndRound(String exampleId, int round, EventQueue... eventQueues) {
+		List<EventQueue> events = new ArrayList<EventQueue>();
+		for(EventQueue event : eventQueues){
+			events.add(event);
+		}
+		Mockito.when(this.eventQueueRepository.findByPlayerIdAndRound(Player.EXAMPLE_ID, round)).thenReturn(events);
+	}
+
+	protected int invert(int value) {
+		return -value;
+	}
+
+	private RoundChanges getRoundChangesAsEnemy(Ability ability, int round) {
+		this.service.useAbility(ability.getId(), round, Boolean.FALSE);
+		return this.service.getRoundChanges(round);
+	}
+
+	private RoundChanges getRoundChangesAsPlayer(Ability ability, int round) {
+		this.service.useAbility(ability.getId(), round, Boolean.TRUE);
+		return this.service.getRoundChanges(round);
+	}
+
+	private Ability createCooldownAbility(int length, String abilityId) {
+		Ability ability = AbilityPool.getAbilityPool().getAbility(abilityId);
+		ability.setCooldown(length);
+		return ability;
+	}
+
+	private Ability createEMPAbility(int length, String abilityId) {
+		Ability ability = AbilityPool.getAbilityPool().getAbility(abilityId);
+		ability.setLifespan(length);
+		return ability;
+	}
+
+	private Ability createAttackAbility(int minDmg, int maxDmg, String abilityId) {
+		Ability ability = AbilityPool.getAbilityPool().getAbility(abilityId);
+
+		ability.setMinDamage(minDmg);
+		ability.setMaxDamage(maxDmg);
+		return ability;
+	}
+
+	private Ability createDotAbility(int minDmg, int maxDmg, int length, String abilityId) {
+		Ability ability = AbilityPool.getAbilityPool().getAbility(abilityId);
+
+		ability.setMinDamage(minDmg);
+		ability.setMaxDamage(maxDmg);
+		ability.setLifespan(length);
+
+		return ability;
+	}
+}

@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 import com.cardprototype.bootstrap.pool.AbilityPool;
 
@@ -31,16 +32,28 @@ public class Player implements Serializable {
 	@Column(name = "round", nullable = false)
 	private int round;
 
+	@Column(name = "def", nullable = false)
+	private int def;
+
+	@Column(name = "acc", nullable = false)
+	private int acc;
+
+	@ManyToOne(cascade=javax.persistence.CascadeType.ALL)
+	private Enemy enemy;
+
 	public Player(){
 		this.abilities = new ArrayList<String>();
+		setEnemy(new Enemy());
 	}
 
 	public void setupStartAbilities(){
-		this.round = 0;
+		this.round = 1;
 		List<Ability> starterAbilities = AbilityPool.getAbilityPool().getStartAbilities();
 		for(Ability ability : starterAbilities){
 			this.abilities.add(ability.getId());
 		}
+		this.acc = 0;
+		this.def = 0;
 	}
 
 	public List<String> getAbilityIds() {
@@ -70,5 +83,38 @@ public class Player implements Serializable {
 
 	public void setRound(int round) {
 		this.round = round;
+	}
+
+	public int getDef() {
+		return this.def;
+	}
+
+	public void setDef(int def) {
+		this.def = addWithRange(def);
+	}
+
+	public int getAcc() {
+		return this.acc;
+	}
+
+	public void setAcc(int acc) {
+		this.acc = addWithRange(acc);
+	}
+
+	private int addWithRange(int value) {
+		if(value > 5){
+			value = 5;
+		} else if(value < -5){
+			value = -5;
+		}
+		return value;
+	}
+
+	public Enemy getEnemy() {
+		return this.enemy;
+	}
+
+	public void setEnemy(Enemy enemy) {
+		this.enemy = enemy;
 	}
 }

@@ -1,0 +1,153 @@
+package com.cardprototype.task;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.cardprototype.bootstrap.pool.AbilityPool;
+import com.cardprototype.core.domain.Ability;
+import com.cardprototype.core.domain.EventQueue;
+import com.cardprototype.core.domain.battle.helper.RoundChanges;
+import com.cardprototype.core.domain.battle.helper.changes.common.ActorChanges;
+import com.cardprototype.core.repository.EventQueueRepository;
+import com.cardprototype.task.generator.RNG;
+
+public class AbilityEffectServiceImpl extends AbstractPlayerServiceImpl implements AbilityEffectService {
+
+	private EventQueueRepository eventQueueRepository;
+
+	@Autowired
+	public AbilityEffectServiceImpl(EventQueueRepository eventQueueRepository) {
+		this.eventQueueRepository = eventQueueRepository;
+	}
+
+	@Override
+	public void useAbility(String abilityId, int round, boolean asPlayer) {
+		Ability ability = AbilityPool.getAbilityPool().getAbility(abilityId);
+
+		for (int i = 0; i < ability.getLifespan(); i++) {
+			EventQueue eventQueue = new EventQueue(round + i, getPlayerId(), abilityId, asPlayer);
+			this.eventQueueRepository.save(eventQueue);
+		}
+
+		saveCooldownEvents(abilityId, round, asPlayer, ability);
+	}
+
+	public void saveCooldownEvents(String abilityId, int round, boolean asPlayer, Ability ability) {
+		for (int i = 0; i < ability.getCooldown(); i++) {
+			EventQueue eventQueue = new EventQueue(round + i, getPlayerId(), abilityId, asPlayer);
+			eventQueue.setCooldownTime(ability.getCooldown() - i);
+			this.eventQueueRepository.save(eventQueue);
+		}
+	}
+
+	@Override
+	public RoundChanges getRoundChanges(int round){
+		RoundChanges changes = new RoundChanges();
+		List<EventQueue> events = this.eventQueueRepository.findByPlayerIdAndRound(getPlayerId(), round);
+		if(CollectionUtils.isNotEmpty(events)){
+			for(EventQueue event : events){
+				changes = appendEventToChanges(changes, event);
+			}
+		}
+		return changes;
+	}
+
+	private RoundChanges appendEventToChanges(RoundChanges changes, EventQueue event) {
+		Ability ability = retrieveAbility(event);
+
+		if(event.getCooldownTime() > 0){
+			changes = handleCooldownEvent(changes, event, ability);
+		} else {
+			changes = handleActionEvent(changes, event, ability);
+		}
+
+		return changes;
+	}
+
+	private RoundChanges handleCooldownEvent(RoundChanges changes, EventQueue event, Ability ability) {
+		ActorChanges actorChanges = changes.getEnemyChanges();
+		if(event.isAsPlayer()){
+			actorChanges = changes.getPlayerChanges();
+		}
+
+		Map<String, Integer> abilitiesOnCooldown = actorChanges.getAbilitiesOnCooldown();
+		if(null == abilitiesOnCooldown){
+			abilitiesOnCooldown = new HashMap<String, Integer>();
+		}
+		abilitiesOnCooldown.put(ability.getId(), event.getCooldownTime());
+
+		if(event.isAsPlayer()){
+			changes.getPlayerChanges().setAbilitiesOnCooldown(abilitiesOnCooldown);
+		} else {
+			changes.getEnemyChanges().setAbilitiesOnCooldown(abilitiesOnCooldown);
+		}
+
+		return changes;
+	}
+
+	public RoundChanges handleActionEvent(RoundChanges changes, EventQueue event, Ability ability) {
+		switch(ability.getAbilityType()){
+		case DAMAGE_DEALER :
+			changes = handleDamageDealer(changes, ability, event.isAsPlayer());
+			break;
+		case SCORCHER :
+			changes = handleDamageDealer(changes, ability, event.isAsPlayer());
+			changes = handleScorcherMarker(changes, event.isAsPlayer());
+			break;
+		case EMP :
+			changes = handleStunMarker(changes, event.isAsPlayer());
+			break;
+		case RESET_COOLDOWNS:
+			changes = resetCooldowns(changes, event.isAsPlayer());
+			break;
+		default: break;
+		}
+		return changes;
+	}
+
+	private RoundChanges resetCooldowns(RoundChanges changes, boolean asPlayer) {
+		List<EventQueue> eventsWithCooldownsForPlayer = this.eventQueueRepository.findByPlayerIdAndCooldownTimeGreaterThanAndIsAsPlayer(getPlayerId(), 0, asPlayer);
+		this.eventQueueRepository.delete(eventsWithCooldownsForPlayer);
+		return changes;
+	}
+
+	private RoundChanges handleStunMarker(RoundChanges changes, boolean asPlayer) {
+		if(asPlayer){
+			changes.getEnemyChanges().setStunned(true);
+		} else {
+			changes.getPlayerChanges().setStunned(true);
+		}
+
+		return changes;
+	}
+
+	private RoundChanges handleScorcherMarker(RoundChanges changes, boolean asPlayer) {
+		if(asPlayer){
+			changes.getEnemyChanges().setScorched(true);
+		} else {
+			changes.getPlayerChanges().setScorched(true);
+		}
+
+		return changes;
+	}
+
+	private RoundChanges handleDamageDealer(RoundChanges changes, Ability ability, boolean asPlayer) {
+		int damage = generateDamage(ability.getMinDamage(), ability.getMaxDamage());
+
+		if(asPlayer){
+			changes.getEnemyChanges().setHealth(-damage);
+		} else {
+			changes.getPlayerChanges().setHealth(-damage);
+		}
+
+		return changes;
+	}
+
+	private int generateDamage(int minDamage, int maxDamage) {
+		return RNG.generate(minDamage, maxDamage);
+	}
+}

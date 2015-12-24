@@ -1,6 +1,7 @@
 package com.cardprototype.bootstrap.pool;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,16 @@ public class AbilityPool {
 		return this.abilities.get(key);
 	}
 
+
+	/**
+	 * Finds all abilities
+	 * @return {@link Ability}
+	 */
+	public Collection<String> getAbilities(){
+		return this.abilities.keySet();
+	}
+
+
 	/**
 	 * Persists a single ability in the pool
 	 * @param {@link Ability} to persist
@@ -63,8 +74,12 @@ public class AbilityPool {
 	public List<Ability> getStartAbilities() {
 		List<Ability> abilities = new ArrayList<Ability>();
 
-		abilities.add(getAbility(Ability.BASIC_ATTACK));
-		abilities.add(getAbility(Ability.BASIC_REPAIR));
+		abilities.add(getAbility(Ability.COOLANT_FLUID));
+		abilities.add(getAbility(Ability.FLAK_CANNON));
+		abilities.add(getAbility(Ability.GATTLING_GUN));
+		abilities.add(getAbility(Ability.GAUSS_MINE_DRONE));
+		abilities.add(getAbility(Ability.HARPOON));
+		abilities.add(getAbility(Ability.OVERDRIVE));
 
 		return abilities;
 	}

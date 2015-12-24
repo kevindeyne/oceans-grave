@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Battle Prototype</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:300' rel='stylesheet' type='text/css'/>
+    <link rel="stylesheet" type="text/css" href="css/fonts/flaticon.css"/>
+    <link rel="stylesheet" href="css/battle.css" type="text/css" />
+    
+    <script type="text/javascript">
+    	$(function(){
+    		$("#test-load").click(function(){
+    			$("html").load( "/battle" );
+    		});
+    	});
+    </script>
+</head>
+<body>
+	<div id="background"></div>
+	
+	<p>
+		<a th:href="${urlBattlePrototype}">Continue to battle prototype</a>
+		<br/>
+		<a th:href="${urlStationPrototype}">Continue to station prototype</a>
+		<br/>
+		<a id="test-load">Test load</a>
+	</p>
+	
+</body>
+</html>

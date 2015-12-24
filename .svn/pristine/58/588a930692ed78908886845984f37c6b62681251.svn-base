@@ -1,0 +1,145 @@
+.current-health{
+    position: relative;
+    top: -82px;
+    font-size:40px;
+    font-weight:bold;
+    text-align:center;
+    display:block;
+    width:100px;
+}
+
+#enemy-circle, #enemy-info, #player-circle, #player-info {
+	height:110px;
+	width:110px;
+} 
+
+#enemy-info, #player-info {
+	display:block;
+	margin:5px;
+	position:absolute;
+	bottom:50%;
+}
+
+#enemy-info{
+	right:10%;
+}
+
+#player-info{
+	left:10%;
+}
+
+#enemy-info span, #player-info span{
+    display: block;
+    width: 110px;
+    text-align: center;
+    margin-left: -4px;
+} 
+
+.stats-icon{
+	float:left;
+	display:block;
+	margin-top:4px;
+	margin-bottom:4px;
+	cursor:pointer;
+}
+
+.stats-icon.debuffed{
+	color:#c60000;
+}
+
+
+.stats-icon.buffed{
+	color:#4ac5f8;
+}
+
+
+/*	box-shadow: inset 0 20px 20px -20px #bd1d1d; */
+
+/* round info */
+#round-info {
+	text-align:center;
+	position:relative;
+	left:-22px;
+}
+
+/* battle log */
+#battle-log {
+	position:absolute;
+	bottom:10px;
+	right:10px;
+	height: 200px;
+	width: 40%;
+	display: block;
+	overflow: hidden;
+	font-size:small;
+	text-align:right;
+    color: #a6a69a;
+}
+
+/*Audio control*/
+#audio-control{
+	position:absolute;
+	top:10px;
+	right:10px;
+	color:#6f9384;
+	
+	cursor:pointer;
+	
+	-webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    
+    font-size:22px !important;
+}
+
+/*foreground*/
+body{
+	color: #edf0dc;	
+	font-family: 'Roboto Slab', serif;
+	font-weight:300;
+}
+
+a{
+	color: #edf0dc;	
+}
+
+/*background*/
+#background{
+	position:absolute;
+	left:0;
+	top:0;
+	width:100%;
+	height:100%;
+	z-index:-99;
+	background: linear-gradient(200deg, #071e26, #326d67, #133235, #000000);
+	background-size: 800% 800%;
+	-webkit-animation: AnimationName 380s ease infinite;
+	-moz-animation: AnimationName 380s ease infinite;
+	-o-animation: AnimationName 380s ease infinite;
+	animation: AnimationName 380s ease infinite;
+}
+
+@-webkit-keyframes AnimationName {
+    0%{background-position:0% 83%}
+    50%{background-position:100% 18%}
+    100%{background-position:0% 83%}
+}
+@-moz-keyframes AnimationName {
+    0%{background-position:0% 83%}
+    50%{background-position:100% 18%}
+    100%{background-position:0% 83%}
+}
+@-o-keyframes AnimationName {
+    0%{background-position:0% 83%}
+    50%{background-position:100% 18%}
+    100%{background-position:0% 83%}
+}
+@keyframes AnimationName {
+    0%{background-position:0% 83%}
+    50%{background-position:100% 18%}
+    100%{background-position:0% 83%}
+}
+

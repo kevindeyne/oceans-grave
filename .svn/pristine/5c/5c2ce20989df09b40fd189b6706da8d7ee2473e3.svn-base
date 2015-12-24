@@ -20,7 +20,9 @@ import com.cardprototype.page.AbstractController;
  * @author Kevin Deyne
  */
 @Controller
-public class PageController extends AbstractController {
+public class BattleController extends AbstractController {
+
+	public static final String BATTLE = "/battle";
 
 	@Autowired
 	private PlayerRepository playerRepository;
@@ -28,7 +30,7 @@ public class PageController extends AbstractController {
 	@Autowired
 	private EventQueueRepository eventQueueRepository;
 
-	@RequestMapping(value={"", "/"})
+	@RequestMapping(value={BATTLE})
 	public String initPage(HttpServletRequest request, Model model) {
 
 		Player player = this.playerRepository.findOne(Player.EXAMPLE_ID);

@@ -1,0 +1,76 @@
+@font-face {
+	font-family: "Flaticon";
+	src: url("flaticon.eot");
+	src: url("flaticon.eot#iefix") format("embedded-opentype"),
+	url("flaticon.woff") format("woff"),
+	url("flaticon.ttf") format("truetype"),
+	url("flaticon.svg") format("svg");
+	font-weight: normal;
+	font-style: normal;
+}
+[class^="flaticon-"]:before, [class*=" flaticon-"]:before,
+[class^="flaticon-"]:after, [class*=" flaticon-"]:after {   
+	font-family: Flaticon;
+    font-size: 20px;
+	font-style: normal;
+	margin-left: 5px;	
+}
+
+/*<ADDITION>*/
+.flaticon-volumeoff:before {
+	font-size:22px !important;
+	content: "\e006";
+}
+.flaticon-volumeon:before {
+	font-size:22px !important;
+	content: "\e007";
+}
+.flaticon-volumeoff:before,
+.flaticon-volumeon:before,
+.flaticon-anchor:before,
+.flaticon-volumeoff:after,
+.flaticon-volumeon:after,
+.flaticon-anchor:after {
+	margin-left: 20px;
+}
+.flaticon-defense:before {
+	content: "\e005";
+}
+.flaticon-accuracy:before {
+	content: "\e004";
+}
+.flaticon-scorched:before {
+	content: "\e002";
+}
+.flaticon-stunned:before {
+	content: "\e001";
+}
+.flaticon-anchor:before {
+	content: "\e000";
+}
+/*</ADDITION>*/
+
+.flaticon-anchor33:before {
+	content: "\e000";
+}
+.flaticon-computers23:before {
+	content: "\e001";
+}
+.flaticon-fire:before {
+	content: "\e002";
+}
+.flaticon-gear74:before {
+	content: "\e003";
+}
+.flaticon-objective1:before {
+	content: "\e004";
+}
+.flaticon-shield65:before {
+	content: "\e005";
+}
+.flaticon-volume47:before {
+	content: "\e006";
+}
+.flaticon-volume51:before {
+	content: "\e007";
+}

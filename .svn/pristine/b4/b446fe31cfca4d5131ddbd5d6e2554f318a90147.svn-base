@@ -1,0 +1,47 @@
+package com.cardprototype.core.domain.battle.helper.changes.common;
+
+import java.util.Map;
+
+public abstract class ActorChanges {
+
+	private int health;
+	private boolean scorched;
+	private boolean stunned;
+
+	private Map<String, Integer> abilitiesOnCooldown;
+
+	public int getHealth() {
+		if(isStunned()){
+			return 0;
+		}
+		return this.health;
+	}
+
+	public void setHealth(int health) {
+		this.health = health;
+	}
+
+	public boolean isScorched() {
+		return this.scorched;
+	}
+
+	public void setScorched(boolean scorched) {
+		this.scorched = scorched;
+	}
+
+	public boolean isStunned() {
+		return this.stunned;
+	}
+
+	public void setStunned(boolean stunned) {
+		this.stunned = stunned;
+	}
+
+	public Map<String, Integer> getAbilitiesOnCooldown() {
+		return this.abilitiesOnCooldown;
+	}
+
+	public void setAbilitiesOnCooldown(Map<String, Integer> abilitiesOnCooldown) {
+		this.abilitiesOnCooldown = abilitiesOnCooldown;
+	}
+}

@@ -14,4 +14,8 @@ public interface EventQueueRepository extends CrudRepository<EventQueue, String>
 
 	public List<EventQueue> findByPlayerId(String playerId);
 
+	public List<EventQueue> findByPlayerIdAndCooldownTimeGreaterThanAndAsPlayer(String playerId, int cooldownTime, boolean asPlayer);
+
+	public List<EventQueue> findByPlayerIdAndRoundAndAsPlayer(String playerId, int round, boolean asPlayer);
+
 }

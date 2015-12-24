@@ -1,0 +1,99 @@
+package com.cardprototype.core.domain;
+
+/**
+ * An ability a player can have
+ * Only the id will be persisted in {@link Player}
+ *
+ * @author Kevin Deyne
+ */
+public class Ability {
+
+	private String id;
+	private AbilityType abilityType;
+	private int strength;
+
+	private String name;
+	private String range;
+	private String type;
+	private String description;
+	private String stats;
+
+	public static final String BASIC_ATTACK =  "basic-attack";
+	public static final String BASIC_REPAIR = "basic-repair";
+
+	public static final String COOLANT_FLUID = "skill-coolant";
+	public static final String GAUSS_MINE_DRONE = "skill-emp";
+	public static final String FLAK_CANNON = "skill-flak";
+	public static final String GATTLING_GUN = "skill-gattling";
+	public static final String HARPOON = "skill-harpoon";
+	public static final String OVERDRIVE = "skill-overdrive";
+
+
+	public AbilityType getAbilityType() {
+		return this.abilityType;
+	}
+
+	public void setAbilityType(AbilityType abilityType) {
+		this.abilityType = abilityType;
+	}
+
+	public String getRange() {
+		return "mid range";
+		//return this.range;
+	}
+
+	public void setRange(String range) {
+		this.range = range;
+	}
+
+	public String getType() {
+		return "turret";
+		//return this.type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getDescription() {
+		return "The Rotschild Gattling Gun unleashes a barrage of small fuel-propelled explosives which damage the hull on contact";
+		//return this.description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getStats() {
+		return "Base ACC: 75%, 1-3 bursts of 0-4 DMG, lowers ACC: -5%, buffs DEF: 5%";
+		//return this.stats;
+	}
+
+	public void setStats(String stats) {
+		this.stats = stats;
+	}
+
+	public int getStrength() {
+		return this.strength;
+	}
+
+	public void setStrength(int strength) {
+		this.strength = strength;
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+}

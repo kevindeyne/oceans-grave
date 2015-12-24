@@ -1,33 +1,81 @@
-.skill{
-	margin:20px;
-	display:block;
-	background-color:#06171e;
-	width:90px;
-	height:90px;
-	cursor:pointer;
-	
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-.skill.disabled{
-	color:#353d32;
-	cursor:default;
-}
-
 .current-health{
-	float:left;
+    position: relative;
+    top: -82px;
+    font-size:40px;
+    font-weight:bold;
+    text-align:center;
+    display:block;
+    width:100px;
 }
+
+#enemy-circle, #enemy-info, #player-circle, #player-info {
+	height:110px;
+	width:110px;
+} 
+
+#enemy-info, #player-info {
+	display:block;
+	margin:5px;
+	position:absolute;
+	bottom:50%;
+}
+
+#enemy-info{
+	right:10%;
+}
+
+#player-info{
+	left:10%;
+}
+
+#enemy-info span, #player-info span{
+    display: block;
+    width: 110px;
+    text-align: center;
+    margin-left: -4px;
+} 
+
+.stats-icon{
+	float:left;
+	display:block;
+	margin-top:4px;
+	margin-bottom:4px;
+	cursor:pointer;
+}
+
+.stats-icon.debuffed{
+	color:#c60000;
+}
+
+
+.stats-icon.buffed{
+	color:#4ac5f8;
+}
+
+.invisible{
+	visibility:hidden;
+}
+
+#recent-attack{
+	position:absolute;
+	text-align:center;
+	top:50%;
+	left:50%;
+	width:500px !important;
+	display:block;
+	margin-left:-260px;
+	margin-top:-175px;	
+}
+
+
 
 /*	box-shadow: inset 0 20px 20px -20px #bd1d1d; */
 
 /* round info */
 #round-info {
 	text-align:center;
+	position:relative;
+	left:-22px;
 }
 
 /* battle log */
@@ -59,6 +107,8 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    
+    font-size:22px !important;
 }
 
 /*foreground*/
@@ -66,6 +116,10 @@ body{
 	color: #edf0dc;	
 	font-family: 'Roboto Slab', serif;
 	font-weight:300;
+}
+
+a{
+	color: #edf0dc;	
 }
 
 /*background*/

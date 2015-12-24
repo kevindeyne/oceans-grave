@@ -6,9 +6,11 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 
 import org.hibernate.annotations.GenericGenerator;
+
+import com.cardprototype.bootstrap.loaders.PlayerLoader;
 
 /**
  * The event queue is a queue used during the battle system, using {@link Player} and round to figure out which are revelant
@@ -27,25 +29,48 @@ public class EventQueue implements Serializable {
 	@GenericGenerator(name = "system-uuid", strategy = "uuid")
 	private String id;
 
-	@OneToOne(optional=true)
+	@ManyToOne(optional=true)
 	private Player player;
 
-	@Column(name = "player_damage", nullable = false)
-	private int playerDamage;
-
-	@Column(name = "player_heal", nullable = false)
-	private int playerHeal;
-
-	@Column(name = "enemy_damage", nullable = false)
-	private int enemyDamage;
-
-	@Column(name = "enemy_heal", nullable = false)
-	private int enemyHeal;
+	@Column(name = "ability_id", nullable = false)
+	private String abilityId;
 
 	@Column(name = "round", nullable = false)
 	private int round;
 
-	public EventQueue() {
+	@Column(name = "as_player", nullable = false)
+	private boolean asPlayer;
+
+	@Column(name = "cooldown_time", nullable = false)
+	private int cooldownTime;
+
+	@Column(name = "stop_ability_buff", nullable = false)
+	private boolean stopAbilityBuff;
+
+	public EventQueue() {}
+
+	public EventQueue(int round, String playerId, String abilityId, boolean asPlayer) {
+		setRound(round);
+		setPlayer(PlayerLoader.createDummyPlayer(playerId));
+		setAbilityId(abilityId);
+		setAsPlayer(asPlayer);
+		setCooldownTime(0);
+	}
+
+	public EventQueue(int round, String playerId, String abilityId, boolean asPlayer, int cooldown) {
+		setRound(round);
+		setPlayer(PlayerLoader.createDummyPlayer(playerId));
+		setAbilityId(abilityId);
+		setAsPlayer(asPlayer);
+		setCooldownTime(cooldown);
+	}
+
+	public EventQueue(int round, String playerId, String abilityId, boolean asPlayer, boolean stopAbilityBuff) {
+		setRound(round);
+		setPlayer(PlayerLoader.createDummyPlayer(playerId));
+		setAbilityId(abilityId);
+		setAsPlayer(asPlayer);
+		setStopAbilityBuff(true);
 	}
 
 	public String getId() {
@@ -64,36 +89,12 @@ public class EventQueue implements Serializable {
 		this.player = player;
 	}
 
-	public int getPlayerDamage() {
-		return this.playerDamage;
+	public String getAbilityId() {
+		return this.abilityId;
 	}
 
-	public void setPlayerDamage(int playerDamage) {
-		this.playerDamage = playerDamage;
-	}
-
-	public int getPlayerHeal() {
-		return this.playerHeal;
-	}
-
-	public void setPlayerHeal(int playerHeal) {
-		this.playerHeal = playerHeal;
-	}
-
-	public int getEnemyDamage() {
-		return this.enemyDamage;
-	}
-
-	public void setEnemyDamage(int enemyDamage) {
-		this.enemyDamage = enemyDamage;
-	}
-
-	public int getEnemyHeal() {
-		return this.enemyHeal;
-	}
-
-	public void setEnemyHeal(int enemyHeal) {
-		this.enemyHeal = enemyHeal;
+	public void setAbilityId(String abilityId) {
+		this.abilityId = abilityId;
 	}
 
 	public int getRound() {
@@ -102,5 +103,29 @@ public class EventQueue implements Serializable {
 
 	public void setRound(int round) {
 		this.round = round;
+	}
+
+	public boolean isAsPlayer() {
+		return this.asPlayer;
+	}
+
+	public void setAsPlayer(boolean asPlayer) {
+		this.asPlayer = asPlayer;
+	}
+
+	public int getCooldownTime() {
+		return this.cooldownTime;
+	}
+
+	public void setCooldownTime(int cooldownTime) {
+		this.cooldownTime = cooldownTime;
+	}
+
+	public boolean isStopAbilityBuff() {
+		return this.stopAbilityBuff;
+	}
+
+	public void setStopAbilityBuff(boolean stopAbilityBuff) {
+		this.stopAbilityBuff = stopAbilityBuff;
 	}
 }

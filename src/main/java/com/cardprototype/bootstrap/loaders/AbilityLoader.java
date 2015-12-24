@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.cardprototype.bootstrap.pool.AbilityPool;
 import com.cardprototype.core.domain.Ability;
 import com.cardprototype.core.domain.AbilityType;
+import com.cardprototype.core.domain.RangeType;
 
 /**
  * Loaders are classes that listen for an application start up and then fill
@@ -25,10 +26,18 @@ public class AbilityLoader implements ApplicationListener<ContextRefreshedEvent>
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
+		AbilityLoader.setup();
+	}
+
+	public static void setup() {
 		AbilityPool pool = AbilityPool.getAbilityPool();
 
-		pool.loadUp(AbilityLoader.basicAttackAbility());
-		pool.loadUp(AbilityLoader.basicHealAbility());
+		pool.loadUp(AbilityLoader.coolantFluidAbility());
+		pool.loadUp(AbilityLoader.flakAbility());
+		pool.loadUp(AbilityLoader.gattlingGunAbility());
+		pool.loadUp(AbilityLoader.gaussMineAbility());
+		pool.loadUp(AbilityLoader.harpoonAbility());
+		pool.loadUp(AbilityLoader.overdriveAbility());
 	}
 
 	/**
@@ -40,34 +49,135 @@ public class AbilityLoader implements ApplicationListener<ContextRefreshedEvent>
 	}
 
 	/**
-	 * Sets up a basic Attack (10) ability
+	 * Sets up a COOLANT FLUID ability
+	 * Resets all recharge rates, buffs defense, removes accuracy bonus
 	 * @return {@link Ability}
 	 */
-	public static Ability basicAttackAbility() {
+	public static Ability coolantFluidAbility() {
 		Ability ability = new Ability();
 
-		ability.setId(Ability.BASIC_ATTACK);
-		ability.setName("Attack (10)");
-		ability.setType(AbilityType.ATTACK);
-		ability.setStrength(10);
+		ability.setId(Ability.COOLANT_FLUID);
+		ability.setName("Coolant fluid");
+		ability.setDescription("Flushing coolant fluid through your systems will repair some of the overheated systems.");
+		ability.setAbilityType(AbilityType.RESET_COOLDOWNS);
+		ability.setRange(RangeType.ANY);
 
 		return ability;
 	}
 
 	/**
-	 * Sets up a basic Repair (5) ability
+	 * Sets up a GAUSS MINE ability
+	 * Emp, disables systems for one turn, recharges increased for all skills (close distsnce), buffs defense
 	 * @return {@link Ability}
 	 */
-	public static Ability basicHealAbility() {
+	public static Ability gaussMineAbility() {
 		Ability ability = new Ability();
 
-		ability.setId(Ability.BASIC_REPAIR);
-		ability.setName("Repair (5)");
-		ability.setType(AbilityType.REPAIR);
-		ability.setStrength(5);
+		ability.setId(Ability.GAUSS_MINE_DRONE);
+		ability.setName("Gauss mine drone");
+		ability.setDescription("The Gauss mine drone is a less than lethal option to take down enemy combatants through electro-magnetic pulses fired in an arch.");
+		ability.setAbilityType(AbilityType.EMP);
+		ability.setRange(RangeType.CLOSE);
+		ability.setDefenseBuff(Ability.BUFF_MAJOR);
 
 		return ability;
 	}
 
+	/**
+	 * Sets up a FLAK CANNON ability
+	 * Scorcher, DOT, several shots with low damage. Buffs accuracy for next shot, lessens defense (mid distance)
+	 * @return {@link Ability}
+	 */
+	public static Ability flakAbility() {
+		Ability ability = new Ability();
+
+		ability.setId(Ability.FLAK_CANNON);
+		ability.setName("Flammengranat Flak Cannon");
+		ability.setDescription("The Flammengranat Flak Cannon fires a barrage of small fuel-propelled scorchers which damage the hull on impact and keeps burning all the way through.");
+		ability.setAbilityType(AbilityType.SCORCHER);
+
+		ability.setMinDamage(1);
+		ability.setMaxDamage(3);
+
+		ability.setAccBuff(Ability.BUFF_MAJOR); //buffs for 5 ACC
+		ability.setDefenseBuff(-Ability.BUFF_MAJOR); //debuffs for 5 DEF
+		ability.setLifespan(3); //DOT lasts for 3 turns
+		ability.setRange(RangeType.MID);
+
+		return ability;
+	}
+
+
+	/**
+	 * Sets up a <strong>Rotschild Gattling Gun</strong> ability<br/>
+	 * DMG 10<br/>
+	 * DEF +1 <br/>
+	 * ACC -1<br/>
+	 * MID Range<br/>
+	 * ACC BASE 80<br/>
+	 * @return {@link Ability}
+	 */
+	public static Ability gattlingGunAbility() {
+		Ability ability = new Ability();
+
+		ability.setId(Ability.GATTLING_GUN);
+		ability.setName("Rotschild Gattling Gun");
+		ability.setDescription("The Rotschild Gattling Gun unleashes a barrage of small fuel-propelled explosives which damage the hull on contact");
+
+		ability = setupDamageDealer(ability, 1, 10, RangeType.MID);
+
+		ability.setDefenseBuff(Ability.BUFF_MINOR);
+		ability.setAccBuff(-Ability.BUFF_MINOR);
+
+		return ability;
+	}
+
+	private static Ability setupDamageDealer(Ability ability, int min, int max, RangeType range) {
+		ability.setAbilityType(AbilityType.DAMAGE_DEALER);
+		ability.setMinDamage(min);
+		ability.setMaxDamage(max);
+		ability.setRange(range);
+
+		return ability;
+	}
+
+	/**
+	 * Sets up a HARPOON ability
+	 * Brings enemy ship into same region as you (long distance), buffs acc, debuffs defense
+	 * @return {@link Ability}
+	 */
+	public static Ability harpoonAbility() {
+		Ability ability = new Ability();
+
+		ability.setId(Ability.HARPOON);
+		ability.setName("Einstich Harpoon");
+		ability.setDescription("The Einstich Harpoon Gun is a long range, highly accurate weapon that will hook your ship into the enemy. It brings you into the same area as them (TODO).");
+		ability.setAbilityType(AbilityType.HARPOON);
+		ability.setRange(RangeType.LONG);
+		ability.setAccBuff(Ability.BUFF_STANDARD);
+		ability.setDefenseBuff(-Ability.BUFF_STANDARD);
+
+		return ability;
+	}
+
+	/**
+	 * Sets up a OVERDRIVE ability
+	 * Cancels emp, cool down for 6 turns, buffs ACC, debuffs DEF drastically
+	 * @return {@link Ability}
+	 */
+	public static Ability overdriveAbility() {
+		Ability ability = new Ability();
+
+		ability.setId(Ability.OVERDRIVE);
+		ability.setName("Engine Overdrive");
+		ability.setDescription("Pushing your ship to the limits, your gears will grind to its maximum. Your defenses are a lot more sensitive, but your accuracy greatly improves and all EMP effects are reverted.");
+		ability.setAbilityType(AbilityType.CANCEL_EMP);
+		ability.setCooldown(6);
+		ability.setDefenseBuff(-Ability.BUFF_MAJOR);
+		ability.setAccBuff(Ability.BUFF_STANDARD);
+		ability.setRange(RangeType.ANY);
+
+		return ability;
+	}
 
 }

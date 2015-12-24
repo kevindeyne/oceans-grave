@@ -1,0 +1,87 @@
+@font-face {
+	font-family: "Flaticon";
+	src: url("flaticon.eot");
+	src: url("flaticon.eot#iefix") format("embedded-opentype"),
+	url("flaticon.woff") format("woff"),
+	url("flaticon.ttf") format("truetype"),
+	url("flaticon.svg") format("svg");
+	font-weight: normal;
+	font-style: normal;
+}
+[class^="flaticon-"]:before, [class*=" flaticon-"]:before,
+[class^="flaticon-"]:after, [class*=" flaticon-"]:after {   
+	font-family: Flaticon;
+        font-size: 20px;
+font-style: normal;
+margin-left: 20px;
+}
+
+/*<ADDITION>*/
+.flaticon-volumeoff:before {
+	font-size:22px !important;
+	content: "\e00b";
+}
+
+.flaticon-volumeon:before {
+	font-size:22px !important;
+	content: "\e00c";
+}
+.flaticon-defense:before {
+	content: "\e009";
+}
+.flaticon-accuracy:before {
+	content: "\e007";
+}
+/*</ADDITION>*/
+
+.flaticon-administrator1:before {
+	content: "\e000";
+}
+.flaticon-anchor33:before {
+	content: "\e001";
+}
+.flaticon-avatar23:before {
+	content: "\e002";
+}
+.flaticon-business56:before {
+	content: "\e003";
+}
+.flaticon-business64:before {
+	content: "\e004";
+}
+.flaticon-gear74:before {
+	content: "\e005";
+}
+.flaticon-management:before {
+	content: "\e006";
+}
+.flaticon-objective1:before {
+	content: "\e007";
+}
+.flaticon-office-worker2:before {
+	content: "\e008";
+}
+.flaticon-shield65:before {
+	content: "\e009";
+}
+.flaticon-users53:before {
+	content: "\e00a";
+}
+.flaticon-volume47:before {
+	content: "\e00b";
+}
+.flaticon-volume51:before {
+	content: "\e00c";
+}
+.flaticon-woman104:before {
+	content: "\e00d";
+}
+.flaticon-woman105:before {
+	content: "\e00e";
+}
+.flaticon-woman139:before {
+	content: "\e00f";
+}
+.flaticon-woman147:before {
+	content: "\e010";
+}

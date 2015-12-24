@@ -1,0 +1,129 @@
+package com.cardprototype.core.domain;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
+import org.hibernate.annotations.GenericGenerator;
+
+import com.cardprototype.bootstrap.loaders.PlayerLoader;
+
+/**
+ * The event queue is a queue used during the battle system, using {@link Player} and round to figure out which are revelant
+ * Different events on the same round are then to be concatenated into a single 'change' event
+ *
+ * @author Kevin Deyne
+ */
+@Entity
+public class EventQueue implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	@Column(name = "id", updatable = false, nullable = false, length = 32)
+	@Id
+	@GeneratedValue(generator = "system-uuid")
+	@GenericGenerator(name = "system-uuid", strategy = "uuid")
+	private String id;
+
+	@ManyToOne(optional=true)
+	private Player player;
+
+	@Column(name = "ability_id", nullable = false)
+	private String abilityId;
+
+	@Column(name = "round", nullable = false)
+	private int round;
+
+	@Column(name = "as_player", nullable = false)
+	private boolean asPlayer;
+
+	@Column(name = "cooldown_time", nullable = false)
+	private int cooldownTime;
+
+	@Column(name = "stop_ability_buff", nullable = false)
+	private boolean stopAbilityBuff;
+
+	public EventQueue(int round, String playerId, String abilityId, boolean asPlayer) {
+		setRound(round);
+		setPlayer(PlayerLoader.createDummyPlayer(playerId));
+		setAbilityId(abilityId);
+		setAsPlayer(asPlayer);
+		setCooldownTime(0);
+	}
+
+	public EventQueue(int round, String playerId, String abilityId, boolean asPlayer, int cooldown) {
+		setRound(round);
+		setPlayer(PlayerLoader.createDummyPlayer(playerId));
+		setAbilityId(abilityId);
+		setAsPlayer(asPlayer);
+		setCooldownTime(cooldown);
+	}
+
+	public EventQueue(int round, String playerId, String abilityId, boolean asPlayer, boolean stopAbilityBuff) {
+		setRound(round);
+		setPlayer(PlayerLoader.createDummyPlayer(playerId));
+		setAbilityId(abilityId);
+		setAsPlayer(asPlayer);
+		setStopAbilityBuff(true);
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public Player getPlayer() {
+		return this.player;
+	}
+
+	public void setPlayer(Player player) {
+		this.player = player;
+	}
+
+	public String getAbilityId() {
+		return this.abilityId;
+	}
+
+	public void setAbilityId(String abilityId) {
+		this.abilityId = abilityId;
+	}
+
+	public int getRound() {
+		return this.round;
+	}
+
+	public void setRound(int round) {
+		this.round = round;
+	}
+
+	public boolean isAsPlayer() {
+		return this.asPlayer;
+	}
+
+	public void setAsPlayer(boolean asPlayer) {
+		this.asPlayer = asPlayer;
+	}
+
+	public int getCooldownTime() {
+		return this.cooldownTime;
+	}
+
+	public void setCooldownTime(int cooldownTime) {
+		this.cooldownTime = cooldownTime;
+	}
+
+	public boolean isStopAbilityBuff() {
+		return this.stopAbilityBuff;
+	}
+
+	public void setStopAbilityBuff(boolean stopAbilityBuff) {
+		this.stopAbilityBuff = stopAbilityBuff;
+	}
+}
