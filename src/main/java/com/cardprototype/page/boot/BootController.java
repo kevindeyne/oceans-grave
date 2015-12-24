@@ -32,7 +32,8 @@ public class BootController extends AbstractController {
 	}
 
 
-	@Autowired private EventQueueRepository eventQueueRepository;
+	@Autowired
+	private EventQueueRepository eventQueueRepository;
 
 	@RequestMapping(value={"/events"})
 	public String events(HttpServletRequest request, Model model) {
