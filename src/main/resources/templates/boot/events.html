@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Battle Prototype</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:300' rel='stylesheet' type='text/css'/>
+    <link rel="stylesheet" type="text/css" href="css/fonts/flaticon.css"/>
+    <link rel="stylesheet" href="css/battle.css" type="text/css" />
+</head>
+<body>
+	<div id="background"></div>
+	
+	<table border="1" style="border:1px solid black; width:90%;">
+	<tr>
+		 <td>round</td>
+		 <td>abilityId</td>
+		 <td>asPlayer</td>
+		 <td>cooldownTime</td>
+		 <td>stopAbilityBuff</td>
+	</tr>
+	<tr th:each="event : ${events}">
+		 <td th:text="${event.round}"></td>
+		 <td th:text="${event.abilityId}"></td>
+		 <td th:text="${event.asPlayer}"></td>
+		 <td th:text="${event.cooldownTime}"></td>
+		 <td th:text="${event.stopAbilityBuff}"></td>
+	</tr>
+	</table>
+</body>
+</html>
