@@ -1,4 +1,4 @@
-package com.cardprototype.core.domain;
+package com.cardprototype.core.domain.ability;
 
 /**
  * Different types of abilities

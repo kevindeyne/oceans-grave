@@ -1,0 +1,46 @@
+package com.cardprototype.page.boot;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.cardprototype.core.domain.Player;
+import com.cardprototype.core.repository.EventQueueRepository;
+import com.cardprototype.page.AbstractController;
+import com.cardprototype.page.battle.BattleController;
+import com.cardprototype.page.station.StationController;
+
+/**
+ * Initial page a user arrives on
+ * Determines whether the user gets to see a splash screen or gets to continue
+ * TODO will act as testing hub
+ * @author Kevin Deyne
+ */
+@Controller
+public class BootController extends AbstractController {
+
+	@RequestMapping(value={"", "/"})
+	public String continueOrSplash(HttpServletRequest request, Model model) {
+
+		model.addAttribute("urlBattlePrototype", BattleController.BATTLE);
+		model.addAttribute("urlStationPrototype", StationController.TEST);
+
+		return "boot/test";
+	}
+
+
+	@Autowired
+	private EventQueueRepository eventQueueRepository;
+
+	@RequestMapping(value={"/events"})
+	public String events(HttpServletRequest request, Model model) {
+
+		model.addAttribute("events", this.eventQueueRepository.findByPlayerIdAndAsPlayerOrderByRoundAsc(Player.EXAMPLE_ID, true));
+
+		return "boot/events";
+	}
+
+}

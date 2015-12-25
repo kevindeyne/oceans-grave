@@ -1,6 +1,11 @@
-package com.cardprototype.core.domain;
+package com.cardprototype.core.domain.ability;
+
+import java.util.List;
 
 import org.thymeleaf.util.StringUtils;
+
+import com.cardprototype.core.domain.Player;
+import com.cardprototype.core.domain.RangeType;
 
 /**
  * An ability a player can have
@@ -25,6 +30,8 @@ public class Ability {
 	private int defenseBuff;
 	private int accBuff;
 	private int cooldown;
+
+	private List<AbilityCategory> categories;
 
 	public static final String COOLANT_FLUID = "skill-coolant";
 
@@ -196,5 +203,13 @@ public class Ability {
 
 	public void setLifespan(int lifespan) {
 		this.lifespan = lifespan;
+	}
+
+	public List<AbilityCategory> getCategories() {
+		return categories;
+	}
+
+	public void setCategories(List<AbilityCategory> categories) {
+		this.categories = categories;
 	}
 }
