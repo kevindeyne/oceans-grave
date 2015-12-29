@@ -1,0 +1,5 @@
+security.user.password=test
+security.user.name=user
+spring.jpa.generate-ddl=true
+spring.jpa.hibernate.ddl-auto=create-drop
+debug=false
