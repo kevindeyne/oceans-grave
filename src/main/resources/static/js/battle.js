@@ -131,7 +131,7 @@ function RoundManager(opts) {
     	$("#enemy-info .flaticon-accuracy").parent().attr("attr-skills", data.enemyChanges.acc);
     	$("#enemy-info .flaticon-defense").parent().attr("attr-skills", data.enemyChanges.def);
     	$("#player-info .flaticon-accuracy").parent().attr("attr-skills", data.playerChanges.acc);
-    	$("#player-info .flaticon-defense").parent().attr("attr-skills", data.playerChanges.def);
+    	$("#player-info .flaticon-defense").parent().attr("attr-skills", data.playerChanges.def);//
     	
     	_abilitiesOnCooldown(data);
     	
