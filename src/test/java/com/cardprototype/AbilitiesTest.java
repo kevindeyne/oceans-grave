@@ -33,7 +33,7 @@ public class AbilitiesTest {
 	@Rule public RepeatRule rule = new RepeatRule();
 
 	@Before
-	public void setup(){
+	public void setup(){//
 		this.eventQueueRepository = Mockito.mock(EventQueueRepository.class);
 		this.playerRepository = Mockito.mock(PlayerRepository.class);
 		this.service = new AbilityEffectServiceImpl(this.eventQueueRepository, this.playerRepository);
