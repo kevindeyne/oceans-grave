@@ -1,4 +1,4 @@
-package com.redleafbooks;
+package com.cardprototype;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.cardprototype.annotation.Repeat;
+import com.cardprototype.annotation.RepeatRule;
 import com.cardprototype.bootstrap.loaders.AbilityLoader;
 import com.cardprototype.bootstrap.pool.AbilityPool;
 import com.cardprototype.core.domain.EventQueue;
@@ -21,8 +23,6 @@ import com.cardprototype.core.repository.EventQueueRepository;
 import com.cardprototype.core.repository.PlayerRepository;
 import com.cardprototype.task.AbilityEffectService;
 import com.cardprototype.task.AbilityEffectServiceImpl;
-import com.redleafbooks.annotation.Repeat;
-import com.redleafbooks.annotation.RepeatRule;
 
 public class AbilitiesTest {
 

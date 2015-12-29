@@ -1,4 +1,4 @@
-package com.redleafbooks.annotation;
+package com.cardprototype.annotation;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
