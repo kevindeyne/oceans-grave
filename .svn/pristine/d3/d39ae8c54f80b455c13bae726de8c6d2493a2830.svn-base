@@ -1,0 +1,362 @@
+package com.cardprototype.task;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.cardprototype.bootstrap.pool.AbilityPool;
+import com.cardprototype.core.domain.Enemy;
+import com.cardprototype.core.domain.EventQueue;
+import com.cardprototype.core.domain.Player;
+import com.cardprototype.core.domain.ability.Ability;
+import com.cardprototype.core.domain.battle.helper.RoundChanges;
+import com.cardprototype.core.domain.battle.helper.changes.PlayerChanges;
+import com.cardprototype.core.repository.EventQueueRepository;
+import com.cardprototype.core.repository.PlayerRepository;
+import com.cardprototype.task.generator.RNG;
+
+@Service
+public class AbilityEffectServiceImpl extends AbstractPlayerServiceImpl implements AbilityEffectService {
+
+	private EventQueueRepository eventQueueRepository;
+	private PlayerRepository playerRepository;
+
+	@Autowired
+	public AbilityEffectServiceImpl(EventQueueRepository eventQueueRepository, PlayerRepository playerRepository) {
+		this.eventQueueRepository = eventQueueRepository;
+		this.playerRepository = playerRepository;
+	}
+
+	@Override
+	public void useAbility(String abilityId, int round, boolean asPlayer) {
+		Ability ability = AbilityPool.getAbilityPool().getAbility(abilityId);
+
+		for (int i = 0; i < ability.getLifespan(); i++) {
+			EventQueue eventQueue = new EventQueue(round + i, getPlayerId(), abilityId, asPlayer);
+			this.eventQueueRepository.save(eventQueue);
+		}
+
+		enemyStunCooldown(asPlayer);
+		saveCooldownEvents(round, asPlayer, ability);
+		saveBuffEvents(round, asPlayer, ability);
+	}
+
+	private void enemyStunCooldown(boolean asPlayer) {
+		if(!asPlayer){
+			Player player = this.playerRepository.findOne(getPlayerId());
+			if(0 != player.getEnemy().getStunned()){
+				int stunsLeft = player.getEnemy().getStunned() - 1;
+				if(stunsLeft < 0){
+					stunsLeft = 0;
+				}
+				player.getEnemy().setStunned(player.getEnemy().getStunned() - 1);
+				this.playerRepository.save(player);
+			}
+		}
+	}
+
+	public void saveCooldownEvents(int round, boolean asPlayer, Ability ability) {
+		for (int i = 0; i < ability.getCooldown(); i++) {
+			EventQueue eventQueue = new EventQueue(round + i, getPlayerId(), ability.getId(), asPlayer);
+			eventQueue.setCooldownTime(ability.getCooldown() - i);
+			this.eventQueueRepository.save(eventQueue);
+		}
+	}
+
+	public void saveBuffEvents(int round, boolean asPlayer, Ability ability) {
+		if(ability.getAccBuff() != 0 || ability.getDefenseBuff() != 0){
+			EventQueue eventQueue = new EventQueue(round + Ability.BUFF_LENGTH, getPlayerId(), ability.getId(), asPlayer, true);
+			this.eventQueueRepository.save(eventQueue);
+
+			Player player = this.playerRepository.findOne(getPlayerId());
+			if(asPlayer){
+				player.setAcc(player.getAcc() + ability.getAccBuff());
+				player.setDef(player.getDef() + ability.getDefenseBuff());
+			} else {
+				player.getEnemy().setAcc(player.getEnemy().getAcc() + ability.getAccBuff());
+				player.getEnemy().setDef(player.getEnemy().getDef() + ability.getDefenseBuff());
+			}
+			this.playerRepository.save(player);
+		}
+	}
+
+	@Override
+	public RoundChanges getRoundChanges(int round, boolean asPlayer){
+		RoundChanges changes = new RoundChanges();
+		List<EventQueue> events = this.eventQueueRepository.findByPlayerIdAndRoundAndAsPlayer(getPlayerId(), round, asPlayer);
+		if(CollectionUtils.isNotEmpty(events)){
+			for(EventQueue event : events){
+				changes = appendEventToChanges(changes, event, round);
+				changes = fillRecentAttackInfo(asPlayer, changes, event);
+			}
+		}
+
+		changes = handleImmediateCooldownsForPlayer(round, asPlayer, changes);
+
+		Player player = this.playerRepository.findOne(getPlayerId());
+		changes.getPlayerChanges().setAcc(player.getAcc());
+		changes.getPlayerChanges().setDef(player.getDef());
+		changes.getEnemyChanges().setAcc(player.getEnemy().getAcc());
+		changes.getEnemyChanges().setDef(player.getEnemy().getDef());
+
+		changes.setRound(round);
+
+		return changes;
+	}
+
+	private RoundChanges handleImmediateCooldownsForPlayer(int round, boolean asPlayer, RoundChanges changes) {
+		if(!asPlayer){
+			List<EventQueue> playerEvents = this.eventQueueRepository.findByPlayerIdAndRoundAndAsPlayer(getPlayerId(), round, true);
+			if(CollectionUtils.isNotEmpty(playerEvents)){
+				for(EventQueue event : playerEvents){
+					if(event.getCooldownTime() == 1){
+						changes = handleCooldownEvent(changes, event, AbilityPool.getAbilityPool().getAbility(event.getAbilityId()));
+					}
+				}
+			}
+		}
+		return changes;
+	}
+
+	private RoundChanges appendEventToChanges(RoundChanges changes, EventQueue event, int round) {
+		Ability ability = retrieveAbility(event);
+
+		if(event.getCooldownTime() > 0){
+			changes = handleCooldownEvent(changes, event, ability);
+		} else {
+			changes = handleActionEvent(changes, event, ability, round);
+		}
+
+		destroyBuff(event, ability);
+
+		return changes;
+	}
+
+	public void destroyBuff(EventQueue event, Ability ability) {
+		if(event.isStopAbilityBuff()){
+			Player player = this.playerRepository.findOne(getPlayerId());
+			if(event.isAsPlayer()){
+				player.setAcc(player.getAcc() - ability.getAccBuff());
+				player.setDef(player.getDef() - ability.getDefenseBuff());
+			} else {
+				player.getEnemy().setAcc(player.getEnemy().getAcc() - ability.getAccBuff());
+				player.getEnemy().setDef(player.getEnemy().getDef() - ability.getDefenseBuff());
+			}
+			this.playerRepository.save(player);
+		}
+	}
+
+
+	private RoundChanges handleCooldownEvent(RoundChanges changes, EventQueue event, Ability ability) {
+		if(event.isAsPlayer()){
+			PlayerChanges playerChanges = changes.getPlayerChanges();
+
+			Map<String, Integer> abilitiesOnCooldown = playerChanges.getAbilitiesOnCooldown();
+			if(null == abilitiesOnCooldown){
+				abilitiesOnCooldown = new HashMap<String, Integer>();
+			}
+			abilitiesOnCooldown.put(ability.getId(), event.getCooldownTime());
+
+			changes.getPlayerChanges().setAbilitiesOnCooldown(abilitiesOnCooldown);
+		} else {
+			Player player = event.getPlayer();
+			List<String> listOnCooldown = new ArrayList<String>();
+			listOnCooldown.add(ability.getId());
+
+			if(null == player.getEnemy().getAbilitiesOnCooldown()){
+				player.getEnemy().setAbilitiesOnCooldown(listOnCooldown);
+			} else{
+				player.getEnemy().getAbilitiesOnCooldown().add(ability.getId());
+			}
+
+			this.playerRepository.save(player);
+		}
+
+		return changes;
+	}
+
+	public RoundChanges handleActionEvent(RoundChanges changes, EventQueue event, Ability ability, int round) {
+		switch(ability.getAbilityType()){
+		case DAMAGE_DEALER :
+			changes = handleDamageDealer(changes, ability, event.isAsPlayer());
+			break;
+		case SCORCHER :
+			changes = handleDamageDealer(changes, ability, event.isAsPlayer());
+			changes = handleScorcherMarker(changes, event.isAsPlayer());
+			break;
+		case EMP :
+			changes = handleStunMarker(changes, event.isAsPlayer());
+			break;
+		case RESET_COOLDOWNS:
+			changes = resetCooldowns(changes, event.isAsPlayer(), round);
+			break;
+		default: break;
+		}
+		return changes;
+	}
+
+	private RoundChanges resetCooldowns(RoundChanges changes, boolean asPlayer, int roundToReset) {
+		List<EventQueue> eventsWithCooldownsForPlayer = this.eventQueueRepository.findByPlayerIdAndCooldownTimeGreaterThanAndAsPlayer(getPlayerId(), 0, asPlayer);
+
+		if(CollectionUtils.isNotEmpty(eventsWithCooldownsForPlayer)){
+			Map<String, EventQueue> eventsPerAbility = new HashMap<String, EventQueue>();
+
+			for(EventQueue eventQueue : eventsWithCooldownsForPlayer){
+				eventsPerAbility.put(eventQueue.getAbilityId(), eventQueue);
+			}
+
+			eventsWithCooldownsForPlayer.removeAll(eventsPerAbility.values());
+			this.eventQueueRepository.delete(eventsWithCooldownsForPlayer);
+
+			for(EventQueue eventQueue : eventsPerAbility.values()){
+				if(1 != eventQueue.getCooldownTime() || roundToReset != eventQueue.getRound()){
+					eventQueue.setCooldownTime(1);
+					eventQueue.setRound(roundToReset);
+					this.eventQueueRepository.save(eventQueue);
+				}
+			}
+		}
+
+		if(!asPlayer){
+			Player player = this.playerRepository.findOne(getPlayerId());
+			player.getEnemy().setStunned(0);
+			this.playerRepository.save(player);
+		}
+
+		return changes;
+	}
+
+	private RoundChanges handleStunMarker(RoundChanges changes, boolean asPlayer) {
+		if(asPlayer){
+			changes.getEnemyChanges().setStunned(true);
+
+			Player player = this.playerRepository.findOne(getPlayerId());
+			player.getEnemy().setStunned(RNG.generate(2, 5));
+			this.playerRepository.save(player);
+		} else {
+			changes.getPlayerChanges().setStunned(true);
+		}
+
+		return changes;
+	}
+
+	private RoundChanges handleScorcherMarker(RoundChanges changes, boolean asPlayer) {
+		if(asPlayer){
+			changes.getEnemyChanges().setScorched(true);
+		} else {
+			changes.getPlayerChanges().setScorched(true);
+		}
+
+		return changes;
+	}
+
+	private RoundChanges fillRecentAttackInfo(boolean asPlayer, RoundChanges changes, EventQueue event) {
+		Ability ability = AbilityPool.getAbilityPool().getAbility(event.getAbilityId());
+		StringBuffer recentAttackAbility = new StringBuffer("");
+		if(asPlayer){
+			recentAttackAbility.append("Player uses ");
+		}else {
+			recentAttackAbility.append("Enemy uses ");
+		}
+		recentAttackAbility.append(ability.getName());
+
+		changes.setRecentAttackAbility(recentAttackAbility.toString());
+
+		return changes;
+	}
+
+	private RoundChanges handleDamageDealer(RoundChanges changes, Ability ability, boolean asPlayer) {
+		int damage = generateDamage(ability.getMinDamage(), ability.getMaxDamage());
+
+		/* * * */
+		StringBuffer recentAttackDamage = new StringBuffer("");
+		if(asPlayer){
+			recentAttackDamage.append("Enemy takes ");
+		}else {
+			recentAttackDamage.append("Player takes ");
+		}
+		recentAttackDamage.append(damage);
+		recentAttackDamage.append(" DMG ");
+		/* * * */
+
+		Player player = this.playerRepository.findOne(getPlayerId());
+		Enemy enemy = player.getEnemy();
+
+		recentAttackDamage.append(buffModifiers(player, enemy, asPlayer));
+		if(asPlayer){
+			damage = damage + player.getAcc() - enemy.getDef();
+			if(damage < 0){ damage = 0; }
+			changes.getEnemyChanges().setHealth(-damage);
+		} else {
+			damage = damage + enemy.getAcc() - player.getDef();
+			if(damage < 0){ damage = 0; }
+			changes.getPlayerChanges().setHealth(-damage);
+		}
+
+		/* * * */
+		changes.setRecentAttackDamage(recentAttackDamage.toString());//TODO
+		/* * * */
+
+		return changes;
+	}
+
+	private String buffModifiers(Player player, Enemy enemy, boolean asPlayer) {
+		StringBuffer result = new StringBuffer("");
+		String accModifier = null;
+		String defModifier = null;
+
+		if(asPlayer){
+			accModifier = handlePosNeg(player.getAcc());
+			defModifier = handlePosNeg(enemy.getDef());
+		} else {
+			accModifier = handlePosNeg(enemy.getAcc());
+			defModifier = handlePosNeg(player.getDef());
+		}
+
+		if(accModifier == null && defModifier == null){
+			return result.toString();
+		} else {
+			String appender = "";
+			result.append("(");
+			if(accModifier != null){
+				appender = ", ";
+				result.append(accModifier);
+				result.append(" ACC");
+			}
+
+			if(defModifier != null){
+				result.append(appender);
+				result.append(defModifier);
+				result.append(" DEF");
+			}
+
+			result.append(")");
+		}
+
+		return result.toString();
+	}
+
+	private String handlePosNeg(int value) {
+		if(value > 0){
+			return "+" + new Integer(value).toString();
+		} else if(value < 0){
+			return new Integer(value).toString();
+		}
+		return null;
+	}
+
+	private int generateDamage(int minDamage, int maxDamage) {
+		return RNG.generate(minDamage, maxDamage);
+	}
+
+	@Override
+	public void enemyMove(int round) {
+		Player player = this.playerRepository.findOne(Player.EXAMPLE_ID);
+		useAbility(RNG.enemyAbility(player), round, false);
+	}
+}

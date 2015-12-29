@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Battle Prototype</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="js/ion.sound.min.js"></script>
+    <script src="js/sound_manager.js"></script>
+    <script src="js/battle.js"></script>
+    <script src="js/circle-progress.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:300' rel='stylesheet' type='text/css'/>
+    <link rel="stylesheet" type="text/css" href="css/fonts/flaticon.css"/>
+    <link rel="stylesheet" href="css/battle.css" type="text/css" />
+    <link rel="stylesheet" href="css/skills.css" type="text/css" />
+	<script th:inline="javascript">
+	/*<![CDATA[*/
+	    var abilityURL = /*[[${urlSkillAction}]]*/;
+	    var enemyURL = /*[[${urlEnemyAction}]]*/;   
+		var abilityParam = "{abilityId}";
+		var roundParam = "{round}";
+		var nonCombatAbilities = /*[[${nonCombatAbilities}]]*/;
+		
+		var messages = new Object();
+		messages.turnPlayer = "Player turn";
+		messages.turnEnemy = "Enemy turn";
+	/*]]>*/
+	</script>
+</head>
+<body>
+	<!-- BACKGROUND -->
+	<div id="background"></div>
+	<!-- div th:replace="fragments/menu :: menu">&nbsp;</div -->
+	
+	<!-- INFO -->
+	<h1 id="round-info">Player turn</h1>
+	<br/>
+	
+	<!-- MID SCREEN FEEDBACK -->
+	<div id="recent-attack">
+		<h2 id="recent-attack-ability"></h2>
+		<h3 id="recent-attack-damage"></h3>
+		<h3 id="recent-attack-buffs"></h3>
+	</div>
+	
+	<!-- LOG -->		
+	<div id="battle-log"></div>
+	
+	<!-- HEALTH / OVERLOAD -->	
+	<div id="player-info">
+		<div id="player-circle">
+	        <div class="current-health">100</div>        
+	    </div>
+	    <span>Player</span>
+	    <div class="stats">
+	   		<div class="stats-icon invisible" attr-name="System overload" attr-skills="Overloaded" attr-description="Your system is overloaded. All weapons are offline for this turn. It is still possible to use non-offensive abilities."><i class="flaticon-stunned"></i></div>
+	   		
+	    	<div class="stats-icon normal" attr-name="Accuracy" attr-skills="5" attr-description="Accuracy determines how good your weapons hit. Overloaded weaponary will do less damage, wheras damaged weapons will lower the damage."><i class="flaticon-accuracy"></i></div>
+	    	<div class="stats-icon normal"  attr-name="Defense" attr-skills="-3" attr-description="Defense determines how much your hull defenses mitigate damage inflicted. A damaged hull can increase damage taken."><i class="flaticon-defense"></i></div>
+	    		    	
+	    	<div class="stats-icon invisible" attr-name="Scorched" attr-skills="Scorched" attr-description="Several explosive charges are attached to your hull and slowly burning through. You will take damage every turn."><i class="flaticon-scorched"></i></div>
+	    	
+	    	<div style="clear:both"></div>
+	    	Rocky Bottom
+	    </div>
+	</div>
+	
+	<div id="enemy-info">
+		<div id="enemy-circle">
+	        <div class="current-health">100</div>
+	    </div>
+	    <span>Enemy</span>
+	    <div class="stats">
+	    	<div class="stats-icon invisible" attr-name="System overload" attr-skills="Overloaded" attr-description="Your system is overloaded. All weapons are offline for this turn. It is still possible to use non-offensive abilities."><i class="flaticon-stunned"></i></div>
+	   		
+	    	<div class="stats-icon normal" attr-name="Accuracy" attr-skills="5" attr-description="Accuracy determines how good your weapons hit. Overloaded weaponary will do less damage, wheras damaged weapons will lower the damage."><i class="flaticon-accuracy"></i></div>
+	    	<div class="stats-icon normal"  attr-name="Defense" attr-skills="-3" attr-description="Defense determines how much your hull defenses mitigate damage inflicted. A damaged hull can increase damage taken."><i class="flaticon-defense"></i></div>
+	    		    	
+	    	<div class="stats-icon invisible" attr-name="Scorched" attr-skills="Scorched" attr-description="Several explosive charges are attached to your hull and slowly burning through. You will take damage every turn."><i class="flaticon-scorched"></i></div>
+	    	<div style="clear:both"></div>
+	    	Strong Stream
+	    </div>
+	</div>
+	
+	<!-- SKILLS -->	
+	<div id="skillset">
+		<div id="skill-description">
+			<p><strong id="descr-skill-name"></strong><br/>
+			<i>Optimal at <span id="descr-skill-range"></span>, <span id="descr-skill-type"></span></i><br/>
+			<span id="descr-skill-description"></span><br/>
+			<span id="descr-skill-stats"></span></p>
+		</div>
+		
+		<div th:each="ability : ${abilities}" th:id="${ability.id}" class="skill"
+			th:attr="skill-name=${ability.name},
+				skill-range=${ability.range}, 
+				skill-type=${ability.type}, 
+				skill-description=${ability.description}, 
+				skill-stats=${ability.stats}"
+		></div>
+		
+		<div class="stats-icon normal" attr-name="Skip turn" ><i class="flaticon-skipturn"></i></div>
+		
+		<div style="clear:both"></div>
+	</div>
+	
+	<!-- CONTROLS -->
+	<div id="audio-control" class="off"><i class="flaticon-volumeoff"></i></div>
+	
+</body>
+</html>
