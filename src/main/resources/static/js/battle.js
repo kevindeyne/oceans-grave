@@ -1,4 +1,5 @@
 var soundManager;
+var playerStunned = false;
 
 $(function(){		
 	var roundManager = new RoundManager();
@@ -115,7 +116,7 @@ function RoundManager(opts) {
     	$("#round-info").text(messages.turnEnemy);
     }
     
-    _markRoundAsPlayerTurn = function() {
+    _markRoundAsPlayerTurn = function() {    	
     	_cfg.skillButtons.removeClass("disabled");
     	$("#round-info").text(messages.turnPlayer);
     }
@@ -259,11 +260,25 @@ function RoundManager(opts) {
         		    	_buildBuffLevels();
         		    	_buildRecentAttackMessage(data);
         		    	
+        		    	playerStunned = data.playerChanges.stunned;
+        		    	
         				setTimeout(function(){
         					if(_checkIfBattleIsOver()){
         						_battleOverSequence();
         					} else {
         						_markRoundAsPlayerTurn();
+        						
+        				    	if(playerStunned){
+        				    		if(null != nonCombatAbilities){
+        				    			$("#skillset div.skill").addClass("disabled");
+        				    	    	for(var abilityIndex in nonCombatAbilities){
+        				    	    		var abilityId = "#" + nonCombatAbilities[abilityIndex];        
+        				    	    		$(abilityId).removeClass("disabled");
+        				    	    	}
+        				    		}
+        				    	} else {
+        				    		$("#skillset div.skill").removeClass("disabled");
+        				    	}
         					}
         				}, 1750);
         			}, 1100);

@@ -41,7 +41,7 @@ public class PlayerLoader implements ApplicationListener<ContextRefreshedEvent>,
 
 	public Player setupPlayer() {
 		Player player = new Player();
-		player.setupStartAbilities();
+		//player.setupStartAbilities();
 		player.setId(Player.EXAMPLE_ID);
 		return this.playerRepository.save(player);
 	}

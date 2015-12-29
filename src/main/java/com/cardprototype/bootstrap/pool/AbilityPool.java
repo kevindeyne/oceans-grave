@@ -6,7 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
+
+import com.cardprototype.core.domain.Player;
 import com.cardprototype.core.domain.ability.Ability;
+import com.cardprototype.core.domain.ability.AbilityCategory;
 
 /**
  * A pool is a singleton factory that can produce or find generated or in-memory instances
@@ -104,5 +108,20 @@ public class AbilityPool {
 		List<Ability> abilities = new ArrayList<Ability>();
 		for(String id : abilityIds){ abilities.add(getAbility(id)); }
 		return abilities;
+	}
+
+	public List<String> getAbilities(Player player, AbilityCategory category) {
+		List<Ability> abilities = player.getAbilities();
+		List<String> result = new ArrayList<String>();
+
+		if(CollectionUtils.isNotEmpty(abilities)){
+			for(Ability ability : abilities){
+				if(ability.getCategories().contains(category)){
+					result.add(ability.getId());
+				}
+			}
+		}
+
+		return result;
 	}
 }

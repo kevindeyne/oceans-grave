@@ -238,7 +238,6 @@ public class AbilityEffectServiceImpl extends AbstractPlayerServiceImpl implemen
 			Player player = this.playerRepository.findOne(getPlayerId());
 			player.getEnemy().setStunned(RNG.generate(2, 5));
 			this.playerRepository.save(player);
-
 		} else {
 			changes.getPlayerChanges().setStunned(true);
 		}

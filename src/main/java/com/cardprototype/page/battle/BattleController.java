@@ -1,5 +1,6 @@
 package com.cardprototype.page.battle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,8 +10,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.cardprototype.bootstrap.pool.AbilityPool;
 import com.cardprototype.core.domain.EventQueue;
 import com.cardprototype.core.domain.Player;
+import com.cardprototype.core.domain.ability.AbilityCategory;
 import com.cardprototype.core.repository.EventQueueRepository;
 import com.cardprototype.core.repository.PlayerRepository;
 import com.cardprototype.page.AbstractController;
@@ -34,10 +37,14 @@ public class BattleController extends AbstractController {
 	public String initPage(HttpServletRequest request, Model model) {
 
 		Player player = this.playerRepository.findOne(Player.EXAMPLE_ID);
+		player.setAbilities(new ArrayList<String>());
+		player.setupStartAbilities();
+		this.playerRepository.save(player);
 		//new battle? -> clear all prev events and keep the database clean
 		clearAllEvents();
 
 		model.addAttribute("abilities", player.getAbilities());
+		model.addAttribute("nonCombatAbilities", AbilityPool.getAbilityPool().getAbilities(player, AbilityCategory.NON_DAMAGE));
 
 		model.addAttribute("urlSkillAction", AbilityController.SKILL_ACTION);
 		model.addAttribute("urlEnemyAction", AbilityController.ENEMY_ACTION);

@@ -13,6 +13,7 @@ public enum AbilityCategory {
 	SMALL_DAMAGE,
 	KILL_STUN,
 	STUN,
-	HARPOON;
+	HARPOON,
+	NON_DAMAGE;
 
 }

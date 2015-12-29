@@ -89,7 +89,7 @@ public class AbilityLoader implements ApplicationListener<ContextRefreshedEvent>
 		ability.setRange(RangeType.ANY);
 		ability.setCooldown(3);
 
-		ability = addCategories(ability, AbilityCategory.KILL_STUN);
+		ability = addCategories(ability, AbilityCategory.KILL_STUN, AbilityCategory.NON_DAMAGE);
 
 		return ability;
 	}
@@ -110,7 +110,7 @@ public class AbilityLoader implements ApplicationListener<ContextRefreshedEvent>
 		ability.setDefenseBuff(Ability.BUFF_STANDARD);
 		ability.setCooldown(3);
 
-		ability = addCategories(ability, AbilityCategory.STUN, AbilityCategory.DEF_BUFF);
+		ability = addCategories(ability, AbilityCategory.STUN, AbilityCategory.DEF_BUFF, AbilityCategory.NON_DAMAGE);
 
 		return ability;
 	}
@@ -184,7 +184,7 @@ public class AbilityLoader implements ApplicationListener<ContextRefreshedEvent>
 		ability.setDefenseBuff(-Ability.BUFF_STANDARD);
 		ability.setCooldown(3);
 
-		ability = addCategories(ability, AbilityCategory.ACC_BUFF, AbilityCategory.HARPOON);
+		ability = addCategories(ability, AbilityCategory.ACC_BUFF, AbilityCategory.HARPOON, AbilityCategory.NON_DAMAGE);
 
 
 		return ability;
@@ -207,7 +207,7 @@ public class AbilityLoader implements ApplicationListener<ContextRefreshedEvent>
 		ability.setAccBuff(Ability.BUFF_MAJOR);
 		ability.setRange(RangeType.ANY);
 
-		ability = addCategories(ability, AbilityCategory.ACC_BUFF, AbilityCategory.KILL_STUN);
+		ability = addCategories(ability, AbilityCategory.ACC_BUFF, AbilityCategory.KILL_STUN, AbilityCategory.NON_DAMAGE);
 
 		return ability;
 	}
