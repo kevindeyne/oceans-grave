@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Battle Prototype</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:300' rel='stylesheet' type='text/css'/>
+    <link href='https://fonts.googleapis.com/css?family=Nova+Flat' rel='stylesheet' type='text/css'/>
+    <script src="js/jquery.flicker.js"></script>
+    <link rel="stylesheet" href="css/battle.css" type="text/css" />
+    <link rel="stylesheet" href="css/intro.css" type="text/css" />
+    
+</head>
+<body>
+	<div id="background"></div>
+	
+	<div id="messages">
+		<h1>We can't always win</h1>
+		<h1>Years ago, we destroyed our planet. Through greed. Through neglect. Through failure</h1>
+		<h1>We waited too long to act, so instead of looking for solutions</h1>
+		<h1>We started looking for alternatives</h1>	
+		<h1>The seas grew. It forced us to adapt</h1>
+		<h1>We started a new life, deep down below</h1>	
+		<h1>Others aimed for the sky, for the depths of the earth or the coldness of space</h1>	
+		<h1>We never heard back from anyone</h1>	
+		<h1>Humans find a way, and soon society rebuilt itself among the new rules of the deep water</h1>	
+		<h1>So did you, didn't you?</h1>
+		<h1>Captain.</h1>
+		<h1 class="title">Ocean's Grave</h1>
+	</div>
+	
+
+	<div id="navigation">
+		<h2>Next</h2>
+		<h2 class="title-screen">Create Character (<i>unavailable</i>)</h2>
+		<h2 id="battle-demo" class="title-screen"><a href="battle">Battle demo</a></h2>
+		<h2 id="station-demo" class="title-screen"><a href="station">Station demo</a></h2>
+	</div>
+
+	<script type="text/javascript">
+	    $.fn.flicker.defaults = {
+	        minOpacity: 0.2,     // Opacity will not go below this value
+	        maxOpacity: 1,       // Opacity will not exceed this value
+	        transition: 250,     // The speed of the animation
+	        delay: 150,           // The time between changes
+	        probability: 0.5     // The probability of a flickering event
+	    };
+	
+	    $("h1").flicker();
+	    
+	    $("h1:first").show();
+	    $("#navigation h2").click(function(){
+	    	$("h1").removeClass("visible");
+	    	$("h1:visible").hide().next().addClass("visible").fadeIn(1000);
+	    	
+	    	if($(".title").hasClass("visible")){
+	    		 $("#navigation h2:first").hide();
+	    		$(".title-screen").show();
+	    		$("#navigation").addClass("as-title");
+		    }
+	    });	    
+    </script>		
+</body>
+</html>
